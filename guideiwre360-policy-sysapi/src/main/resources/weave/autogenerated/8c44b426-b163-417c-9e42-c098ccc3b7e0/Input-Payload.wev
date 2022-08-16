@@ -1,0 +1,7 @@
+%dw 2.0
+
+type auto_8c44b426_b163_417c_9e42_c098ccc3b7e0_Input_Payload = {|
+  query: {| "Activity.Policy_id": String |}, 
+  collection: String
+|}
+

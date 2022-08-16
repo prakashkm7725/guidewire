@@ -1,0 +1,20 @@
+http:
+  listener:
+    port: "8081"
+    host: "localhost"
+  requester:
+    smsHost: "nous-send-sms-sys-api.us-e2.cloudhub.io"
+    emailHost: "nous-email-notification.us-e2.cloudhub.io"
+    
+    
+mongodb:
+  connectionString: "mongodb+srv://prakashsr:rqEICMCTPE5y0P4M@fiscluster.ulxri.mongodb.net/Guidewire-Comms?retryWrites=true&w=majority"
+  commsCol: "Comms Accelerators"
+  claimCol: "Claim-Contacts"
+  
+smtp:
+  email:
+    host: "imap.gmail.com"
+    port: "993"
+    username: "coedemo.nous@gmail.com"
+    password: "wberducpcnhehqtv"

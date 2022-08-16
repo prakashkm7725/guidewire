@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio"
+	xmlns:twilio-connector="http://www.mulesoft.org/schema/mule/twilio-connector"
+	xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/twilio-connector http://www.mulesoft.org/schema/mule/twilio-connector/current/mule-twilio-connector.xsd
+http://www.mulesoft.org/schema/mule/twilio http://www.mulesoft.org/schema/mule/twilio/current/mule-twilio.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c7ff748a-f734-4120-bc5b-ab76968a8885" basePath="/claim" >
+		<http:listener-connection host="0.0.0.0" port="${http.listener.port}" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="30a71bf8-0c85-4070-9a80-bcdb43370c9b" >
+		<http:request-connection host="${http.requester.smsHost}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="0117efb0-31f9-4591-9ca1-67f2e1f19342" >
+		<http:request-connection host="${http.requester.emailHost}" />
+	</http:request-config>
+	<mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="4b774dc4-896c-484a-b8fc-2e949965418c" >
+		<mongo:connection-string-connection connectionString="${mongodb.connectionString}" />
+	</mongo:config>
+	<email:imap-config name="Email_IMAP" doc:name="Email IMAP" doc:id="61ae69de-083a-4a0f-a37e-739947f96c3c" >
+		<email:imap-connection host="${smtp.email.host}" user="${smtp.email.username}" password="${smtp.email.password}" port="${smtp.email.port}">
+			<email:properties >
+				<email:property key="mail.imap.ssl.enable" value="true" />
+			</email:properties>
+		</email:imap-connection>
+	</email:imap-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="ce9b8cdd-a683-4d7f-a9c9-53f01467513c" file="config.yaml" />
+	<flow name="guidewire-commsFlow1" doc:id="727c7922-abb5-47f8-ae13-383fa3ecdd21">
+		<http:listener doc:name="Listener" doc:id="7a32f064-408f-44c5-985f-79f4ab4d80ae" config-ref="HTTP_Listener_config" path="/comms/notify" />
+		<ee:transform doc:name="Transform Message" doc:id="a559a88a-41fc-441f-9d7b-c5f937e0bbc4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.parts pluck($)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="dffd2f7d-8495-4c51-8287-ea4f94b617d0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    (payload map() -> {
+        (if($.headers."Content-Disposition".filename == null) ($.headers."Content-Disposition".name)  else ($.headers."Content-Disposition".filename)) : ($.content)
+    })
+}	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="729099a1-f0e9-49b2-864b-bfb6c409350a" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="2c1ddfaf-d47c-48e7-989c-d502db22ce91">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="emailAttachments"><![CDATA[%dw 2.0
+output application/json
+---
+(payload -"channel" - "claimId" - "batched" - "subjectline" - "bodycontent" - "smscontent") mapObject ((value, key, index) -> ({
+    (key) : value
+}))]]></ee:set-variable>
+				<ee:set-variable variableName="inputData"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="0ed40d92-e0a7-4989-b72a-16ef89a516c8" name="guidewire-commsFlow" />
+	</flow>
+	<flow name="guidewire-commsFlow" doc:id="564e1cef-6a54-4fa5-bf25-625f4a9d279e" >
+		<ee:transform doc:name="ClaimAccount query" doc:id="e4f3e8c8-0876-483d-94a6-b1dd743111c6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ClaimContact.claimId" : vars.inputData.claimId
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		
+</ee:transform>
+		<mongo:find-documents doc:name="Claims Contact Query" doc:id="64af0067-2cb6-45b5-9568-4418b3eeac82" config-ref="MongoDB_Config" collectionName="${mongodb.claimCol}" fields=",">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<choice doc:name="ClaimAccount data check" doc:id="04119e76-5a02-4d39-9c0a-754e906093e1" >
+			<when expression="#[sizeOf(payload) &gt; 0 and !isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message" doc:id="5916ef98-2901-49d0-8db7-dd4cdccce338">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+((flatten(payload.ClaimContact)) map({
+    "ClaimId" : $.claimId,
+    "ContactId" : $.contactId,
+    "EmailId" : $.emailAddress1,
+    "primaryPhone" : $.primaryPhone,
+    "Channel" : vars.inputData.channel default "email",
+    "batched" : vars.inputData.batched default true,
+    "created date" : now() as DateTime,
+    "status" : "In Progress",
+    "address" : $.primaryAddress,
+    "content" : if(vars.inputData.channel ~= "email") vars.inputData.bodycontent default "Hello user" else vars.inputData.smscontent default "Hello user",
+    "id" : uuid()
+}))[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<mongo:insert-document doc:name="Insert into comms acc" doc:id="2e6fbeff-556d-4b82-82a9-521233362008" config-ref="MongoDB_Config" collectionName="${mongodb.commsCol}" />
+				<ee:transform doc:name="Transform Message" doc:id="229fa5d8-a6cb-43f0-b1ff-0dc03daa39d9">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - ("_id")]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="ac147981-bd47-491f-bdf2-f58bd892f988">
+					<when expression="#[payload.batched ~= false]">
+						<ee:transform doc:name="Transform Message" doc:id="c81b7030-5aae-458c-add4-afb80cd52031">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[payload]]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="Flow Reference" doc:id="fdebf981-aeb5-4d38-a67c-013b2bdf681c" name="guidewire-comms-processFlow" />
+					</when>
+					<otherwise>
+						<ee:transform doc:name="Transform Message" doc:id="99a7348b-ef6f-49ee-b9d4-ad3e8b5483cc">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="ce18a6fa-1d85-478d-966d-9ef5d6b958e4">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "ClaimId not found"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	
+</flow>
+	<flow name="hourly-schedule-jobFlow" doc:id="ee2dea3f-c308-4214-8527-b933164e1d04" >
+		<scheduler doc:name="Scheduler" doc:id="4ce07069-bbad-41f3-9430-42f3b77ca5b9" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="50" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="Logger" doc:id="0f6bb94d-8174-4da5-b6cc-fdaf54aae166" message='#["Hourly scheduled job triggered at " ++ now() as DateTime]'/>
+		<ee:transform doc:name="Transform Message" doc:id="cef15830-0310-48ec-a50a-a37cdc6ded5a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status" : "In Progress",
+	"batched" : "true"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents collectionName="Comms Accelerators" fields="," doc:name="Find documents" doc:id="438133a3-b900-4665-bbc9-5a8317ec01f8" config-ref="MongoDB_Config">
+			<mongo:query><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="62340e38-d8a2-4378-a4fe-4f78205fd7db" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map($ - "_id")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="4e48bb0f-a93b-40ce-93c8-43827eac1e96" name="guidewire-comms-processFlow"/>
+	</flow>
+	<flow name="guidewire-comms-processFlow" doc:id="13632daa-a21a-496c-9c15-c17e4011a14f" >
+		<ee:transform doc:name="Transform Message" doc:id="16e39562-2af5-4042-b54c-89fabc849684" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="5b54b01a-84fe-4d77-9b3c-e32144b3a8f6" >
+			<choice doc:name="Choice" doc:id="47269b74-4beb-43b0-a054-ae9ef039bfd1" >
+				<when expression='#[((payload."created date" as DateTime &lt;= now()) and (payload."created date" &gt;= (now() - |PT1H0M0S|)))]' >
+					<ee:transform doc:name="Transform Message" doc:id="cf931fe0-4294-4e0c-933e-832a01da88f8" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="batchedData" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="7734216f-43ca-4a60-baa1-9a302cde4e37" message="#[vars.batchedData]" />
+					<choice doc:name="Channel check" doc:id="dede9373-21b0-466d-a03f-768d0e0ff020" >
+						<when expression='#[payload.Channel ~= "mobile" or payload.Channel ~= "phone"]' >
+							<flow-ref doc:name="Flow Reference" doc:id="a08dce60-cccd-4e87-8316-268e6c49d58e" name="guidewire-comms-sendsms-flow" />
+						</when>
+						<when expression='#[payload.Channel ~= "email"]' >
+							<flow-ref doc:name="Flow Reference" doc:id="b34e2eb3-5433-4309-9c5f-f62e167f76de" name="comms-sendEmail-notification" />
+						</when>
+						<otherwise >
+							<ee:transform doc:name="Transform Message" doc:id="df737518-10ff-4f29-888c-87261ebb7624" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</otherwise>
+					</choice>
+					<ee:transform doc:name="Transform Message" doc:id="e0698f99-1695-44c6-b610-5c20ea96b54b" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="outputResponse" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : if(payload.status ~= "sent") "notification sent successfully" else "failed to sent notification"
+}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<mongo:update-documents collectionName="${mongodb.commsCol}" doc:name="Update Status Response" doc:id="fdb604ea-6497-4cbc-b210-c06bef330f74" config-ref="MongoDB_Config" >
+						<mongo:query ><![CDATA[#[vars.updateQuery]]]></mongo:query>
+					</mongo:update-documents>
+				</when>
+			</choice>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="f7d86e8b-1a1b-402b-af0d-48226ff5da1d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.outputResponse]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="1788f41e-5a45-497f-a398-d7d4f67ff333" message="#[payload]"/>
+	</flow>
+	<flow name="guidewire-comms-sendsms-flow" doc:id="e3d99bb1-1ac2-4e1a-a2f0-4fb4fe83bee4" >
+		<logger level="INFO" doc:name="Logger" doc:id="ee3d7db5-d780-4e87-b0d2-eae8111260f0" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="e16aa10e-1282-47f9-a97b-97d27734be77" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "To": payload.primaryPhone,
+    "body": payload.content
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Send SMS sysApi call" doc:id="6429db08-33b0-486f-acba-8620a6774006" config-ref="HTTP_Request_configuration" path="/send">
+			<http:response-validator >
+				<http:success-status-code-validator values="100..600" />
+			</http:response-validator>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="cfc52a17-bc7e-443c-bfca-d8782e7b4845" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status" : if(typeOf(payload) ~= "Object") "sent" else "failed"
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="updateQuery" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id" : vars.batchedData.id
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+	<flow name="guidewire-comms-getContactsBy-EmailOrMobile" doc:id="73beb7c6-5b76-495e-8dfd-b4b609aa94b8" >
+		<http:listener doc:name="Listener" doc:id="03de5e14-f03e-40f5-9d21-99c2440d9337" config-ref="HTTP_Listener_config" path="/getContacts"/>
+		<ee:transform doc:name="MongoDb Query" doc:id="716c1f2c-d7bf-4007-a7c9-458afd5f6aaf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    (if(payload.claim == null or isEmpty(payload.claim)) "EmailId" : payload.email else {
+        "ClaimId" : payload.claim,
+        "EmailId" : payload.email
+    })
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="5482e694-e35d-448f-a99d-f205c1c1afb7" message='#["MongoDb Query to fetch contacts by Email or Mobile " : payload]'/>
+		<mongo:find-documents collectionName="${mongodb.commsCol}" fields="," doc:name="Get Claim-Contacts" doc:id="4153fdf6-83b3-44d8-83ec-d39ecfeed15f" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="cb33374a-add3-492b-ac52-77fdd7edb55b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map($ - "_id")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

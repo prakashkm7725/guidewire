@@ -1,0 +1,42 @@
+[{
+  
+    
+  "contingency": {
+    "mon_id": "62f22b4dcb81aa2ff3c7fc59",
+    "contingency_id": "CONTIG21891ID",
+    "actionStartDate": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "actionStarted": true,
+    "closeDate": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "action": {
+      "code": "4",
+      "name": ""
+    },
+    "description": "User contingency",
+    "dueDate": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "createDate": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "closeUser": {
+      "displayName": "close user",
+      "id": "CLU21891ID"
+    },
+    "createUser": {
+      "displayName": "create User",
+      "id": "CRU21891ID"
+    }
+  }
+}]

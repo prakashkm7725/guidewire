@@ -1,0 +1,49 @@
+[{
+  "Activity": {
+    "Account_id": "ACT21891ID",
+    "Policy_id": "POC21890ID",
+    "activityPattern": "Act pat",
+    "activityType": {
+      "approvalIssue": "approve req",
+      "approvalRationale": "apr"
+    },
+    "assignedByUser": {
+      "displayName": "Just Name",
+      "Id": "ASIGN21890ID",
+      "type": "techie"
+    },
+    "description": "sample act",
+    "dueDate": {
+      "$date": {
+        "$numberLong": "1628418265121"
+      }
+    },
+    "endDate": {
+      "$date": {
+        "$numberLong": "1659951110396"
+      }
+    },
+    "escalationDate": {
+      "$date": {
+        "$numberLong": "1662629510396"
+      }
+    },
+    "startDate": {
+      "$date": {
+        "$numberLong": "1628418265121"
+      }
+    },
+    "priority": {
+      "name": "medium",
+      "code": 4
+    },
+    "status": {
+      "name": "Active",
+      "code": 3
+    },
+    "subject": "Activity demo",
+    "Activity_id": "ACT21890ID",
+    "mon_id" : "62f21bd2cb81aa2ff3c7fc52"
+  }
+}
+]

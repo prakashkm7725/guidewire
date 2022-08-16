@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <flow name="get:\Insurance-360\policies\(policyId)\PaymentInfo:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="policyId">attributes.uriParams.'policyId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="aba94130-6465-4137-83a7-351eeb434977" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"PaymentInfo.policyId":vars.policyId
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message='#["entering to documents"]' />
+		<mongo:find-documents doc:name="Find documents" doc:id="63b5ed7a-ec70-4a3d-b47b-d0abbbb48330" collectionName="Policies-PaymentInfo" fields="," config-ref="MongoDB_Config">
+			<mongo:query><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="b400b6ad-1bb1-4997-b9d7-c5af297c144f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6533b96a-a5f1-4ee8-9554-1cfa4f3bf552" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance-360\policies\(policyId)\account:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="policyId">attributes.uriParams.'policyId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="93eae527-432d-47a6-ae95-2c6622a25b89" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+"Account.policyId":vars.policyId
+
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message='#["entering to documents"]' />
+		<mongo:find-documents doc:name="Find documents" doc:id="8a6451d1-17ce-49c0-94ad-7721a5e18006" collectionName="Policies-Account" fields="," config-ref="MongoDB_Config">
+			<mongo:query><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="2f4fed88-07fb-4ceb-b1c4-ae828712bb87">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6abd630d-fe3e-437a-86d4-7d9ab8a75230" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance-360\policies\(policyId)\activity-assignees:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="policyId">attributes.uriParams.'policyId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="32f91949-af47-4ebb-9817-3a57339003a6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"activityAssignee.policyId":vars.policyId
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message='#["entering to documents"]' />
+		<mongo:find-documents doc:name="Find documents" doc:id="4b9f31ab-787e-4503-a3b7-deede5d63a06" collectionName="Policies-activityAssignee" fields="," config-ref="MongoDB_Config">
+			<mongo:query><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="32e94e09-ce4e-414d-b6d2-032eadd47d3d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <logger level="INFO" message="#[payload]" />
+    </flow>
+	<flow name="get:\Insurance-360\policies\(policyId)\questions:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'policyId']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="3d9a1924-aa7c-406e-8aa2-9b990964561f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+"questions.policyId":vars.id
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message='#["entering to documents"]' />
+		<mongo:find-documents doc:name="Find documents" doc:id="11a66fa0-15fb-426e-8ab9-ac559f4262c1" collectionName="Policies-questions" fields="," config-ref="MongoDB_Config">
+			<mongo:query><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="d27448af-df68-4e49-91c2-a49b49a044e6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="4ece0a3b-4228-4a1d-b343-33a9ccfdfc6f" />
+    </flow>
+    <flow name="get:\Insurance-360\policies\accounts\(accountId)\policies:insurance-360-system-api-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="accountId">attributes.uriParams.'accountId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="4da08b91-fcac-4c2e-a050-a252b96b3938" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Account.accountId":vars.accountId
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message='#["entering to documents"]' />
+		<mongo:find-documents doc:name="Find documents" doc:id="be105fa9-3a13-462a-aaa8-a313ec473c89" collectionName="Policies-Account" fields="," config-ref="MongoDB_Config">
+			<mongo:query><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="5a38d239-451e-4a7b-b7fb-28cf0dee901c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="227bb516-7620-401a-afb3-c110da12d207" />
+    </flow>
+</mule>

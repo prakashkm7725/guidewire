@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="comms-email-triggerFlow" doc:id="4bb44173-2c73-4bed-b192-4e7950e1553d" >
+		<email:listener-imap doc:name="On New Email - IMAP" doc:id="ddf06933-64e3-4947-bcbb-461f152ad28a" config-ref="Email_IMAP">
+			<scheduling-strategy >
+				<fixed-frequency frequency="10" timeUnit="SECONDS" />
+			</scheduling-strategy>
+		</email:listener-imap>
+		<ee:transform doc:name="Transform Message" doc:id="df1c85dd-f20d-4101-a3ec-87820b736c40" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="emailData" ><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+---
+{
+	"from address" : (substringAfterLast(attributes.fromAddresses[0], " "))replace  /[^a-z0-9A-Z.@_]/ with "",
+	"subject" : substringBeforeLast(substringBeforeLast(attributes.subject, " "), " "),
+	"timestamp": attributes.receivedDate,
+	"Email Body" : payload
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="834e602e-9508-4a69-8d0b-71a3da01d51f" message='#["Email Trigger Data " : vars.emailData]'/>
+		<ee:transform doc:name="Transform Message" doc:id="1bd163ef-597b-4029-bf35-f968fb116057" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ClaimContact.emailAddress1" : vars.emailData.'from address'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents fields="," doc:name="ClaimContact query" doc:id="b2071db3-09b8-43a4-9d5a-e2cb868eecd7" config-ref="MongoDB_Config" collectionName="${mongodb.claimCol}">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<choice doc:name="Choice" doc:id="96ad2336-2690-4ff2-8154-968e67330f14" >
+			<when expression="#[sizeOf(payload) &gt; 0 and !isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message" doc:id="4050a0e2-86dd-470b-a62f-777b029c29f5" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+((flatten(payload.ClaimContact)) map({
+    "ClaimId" : $.claimId default "",
+    "ContactId" : $.contactId default "",
+    "EmailId" : $.emailAddress1 default "",
+    "primaryPhone" : $.primaryPhone default "",
+    "Channel" : "email",
+    "batched" : false,
+    "created date" : now() as DateTime default "",
+    "Received DateTime" : vars.emailData.timestamp default "",
+    "Sent DateTime" : "",
+    "status" : "Received",
+    "address" : $.primaryAddress default "",
+    "content" : vars.emailData.'Email Body' default "",
+    "id" : uuid()
+}))[0]]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="f5c5dff0-b448-4004-8e9c-51b6dcf1d439" message="#[payload]"/>
+				<mongo:insert-document collectionName="${mongodb.commsCol}" doc:name="Insert document" doc:id="866b9353-3fdb-49ec-b64c-8678b61945fd" config-ref="MongoDB_Config"/>
+				<logger level="INFO" doc:name="Logger" doc:id="c1d9cc40-7cb3-4c1c-a05c-23a531abff4e" message="#[payload]"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="18dacba4-39ce-421f-bc25-4460aaddb76b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "ClaimId" : "",
+    "ContactId" : "",
+    "EmailId" : vars.emailData.'from address',
+    "primaryPhone" : "",
+    "Channel" : "email",
+    "batched" : false,
+    "created date" : "",
+    "Received DateTime" : vars.emailData.timestamp default "",
+    "Sent DateTime" : "",
+    "status" : "Received",
+    "address" : "",
+    "content" : vars.emailData.'Email Body' default "",
+    "id" : uuid()
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="b2478027-6c34-412b-b63d-3537373cd8b0" message="#[payload]" />
+				<mongo:insert-document collectionName="${mongodb.commsCol}" doc:name="Insert document" doc:id="8c1805d9-e6b9-4167-ad66-65050ea5ab38" config-ref="MongoDB_Config"/>
+				<logger level="INFO" doc:name="Logger" doc:id="c0f49cf8-6d71-44e1-91de-b2315c40b1e3" message="#[payload]"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="comms-sendEmail-notification" doc:id="2768f5e3-9417-4c5e-bb3b-9673c031ece0" >
+		<ee:transform doc:name="Transform Message" doc:id="1e64aa36-1c4c-4615-8d39-8792be8847e7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(payload.batched ~= "false")({
+	"emailId" : payload.EmailId,
+	"subject" : if(payload.batched ~= "true") payload.ClaimId else (payload.ClaimId ++ " " ++ vars.inputData.subjectline),
+	"body" : payload.content
+} ++ vars.emailAttachments) else {
+	"emailId" : payload.EmailId,
+	"subject" : if(payload.batched ~= "true") payload.ClaimId else (payload.ClaimId ++ " " ++ vars.inputData.subjectline),
+	"body" : payload.content
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="send email notification" doc:id="bdd58766-1b1a-41a9-99ac-dc20864ca360" config-ref="HTTP_Request_configuration1" path="/send/email"/>
+		<ee:transform doc:name="Transform Message" doc:id="1f61799c-62bf-48e5-9740-3ec46201cc0d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status" : "sent"
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="updateQuery" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id" : vars.batchedData.id
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+</mule>

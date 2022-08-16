@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd">
+    <salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="ff576f94-7f5a-4e42-b7a0-4c7974308c2e">
+        <salesforce:basic-connection username="${salesforce.username}" password="${salesforce.password}" securityToken="${salesforce.accessToken}" />
+    </salesforce:sfdc-config>
+    <http:listener-config name="insurance-management-claim-system-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="insurance-management-claim-system-api-config" api="resource::04da4a8a-033f-4e6c-b0be-4ff39bd1db56:insurance-management-claim-system-api:1.0.14:raml:zip:insurance-management-claim-system-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <configuration-properties doc:name="Configuration properties" doc:id="8a89256e-4ff3-4e62-b5ea-9aa85b280cbe" file="${env}.properties" />
+    <s3:config name="Amazon_S3_Configuration" doc:name="Amazon S3 Configuration" doc:id="d371cd64-1146-422c-a4fd-52e85e977da6">
+        <s3:basic-connection accessKey="${aws.key}" secretKey="${aws.secret}" />
+    </s3:config>
+	<global-property doc:name="Global Property" doc:id="d3f55833-d034-4cbc-b443-1023bd2dc021" name="env" value="dev" />
+</mule>

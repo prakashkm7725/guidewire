@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_dc533459_3ca1_4c6b_810c_2cd56ba8b7cb_Output_Payload = {|
+  Claims: {|
+    name: String, 
+    AccountId: String, 
+    claimId: String, 
+    records: String, 
+    children: Array<Nothing>
+  |}
+|}
+

@@ -1,0 +1,193 @@
+#%RAML 1.0
+title: guidewire-360-api
+
+
+
+
+/Insurance:
+  /accounts:
+    /{accountId}:
+      get:
+        description: Get the account detials from Id
+        responses:
+          200:
+            body:
+              application/json:
+                example: !include examples/getAccounts.json
+          
+      /activites:
+        get:
+          description: Get the activity detials from Accnt Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getActivities.json
+            
+      /activitypattern:
+        get:
+          description: Get the activity pattern detials from Accnt Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getActivityPattern.json
+            
+      /assignee:
+        get:
+          description: Get the assignee detials from Accnt Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getAssignee.json
+            
+      /contacts:
+        get:
+          description: Get the assignee detials from Accnt Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getContact.json
+            
+        /{contactId}:
+          get:
+            description: Get the contact details from contact id
+            responses:
+              200:
+                body:
+                  application/json:
+                    example: !include examples/getContactfromContactId.json
+              
+      /notes:
+        get:
+            description: Get the note details from Accnt Id
+            responses:
+              200:
+                body:
+                  application/json:
+                    example: !include examples/getNotes.json
+              
+      /policies:
+        get:
+          description: get the details for policy related to accountId
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getPolicy.json
+            
+      /documents:
+        get:
+          description: get the documents related to accountId
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getDocuments.json
+            
+
+
+  /policies:
+    /{policyId}:
+      get:
+        description: Get details of a particluar policy from Id
+        responses:
+          200:
+            body:
+              application/json:
+                example: !include examples/getPolicy.json
+          
+      
+      /activites:
+        get:
+          description: Get the activity details from policy Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getActivities.json
+              
+      
+      /assignee:
+        get:
+          description: Get the assignee details from policy Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getAssignee.json
+           
+      /activitypattern:
+        get:
+          description: Get the activity pattern details from policy Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getActivityPattern.json
+            
+      /contacts:
+        get:
+          description: Get the contact details from policy Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getContact.json
+            
+        /{contactId}:
+          get:
+            description: Get the assignee details from contact Id
+            responses:
+              200:
+                body:
+                  application/json:
+                    example: !include examples/getContactfromContactId.json
+              
+      /contingency:
+        get:
+          description: Get the contignecy details from policy Id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getContingency.json
+      /notes:
+        get:
+            description: Get the note detials from policy Id
+            responses:
+              200:
+                body:
+                  application/json:
+                    example: !include examples/getNotes.json
+            
+      /documents:
+        get:
+          description: get the details of documents related to policy id
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getDocuments.json
+      /paymentInfo:
+        get:
+          description: get the payment details of policyid
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include examples/getPayment.json
+
+        
+            
+        
+            
+        
+
+                      
+
+
+
+

@@ -1,0 +1,49 @@
+[{
+"Account": {
+    "Account_id": "ACC21891ID",
+    "accountHolder": {
+      "displayName": "Prakash K M",
+      "id": "87TJS891"
+    },
+    "accountNumber": "9844012891",
+    "accountStatus": {
+      "code": "2",
+      "name": "active"
+    },
+    "accountStatusUpdateTime": {
+      "$date": {
+        "$numberLong": "1661350522000"
+      }
+    },
+    "createdDate": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "originationDate": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "frozen": true,
+    "primaryLanguage": {
+      "code": "4",
+      "name": "English"
+    },
+    "preferredCoverageCurrency": {
+      "code": "4",
+      "name": "INR"
+    },
+    "preferredSettlementCurrency": {
+      "code": "4",
+      "name": "INR"
+    },
+    "organizationType": {
+      "code": "4",
+      "name": "Nous"
+    },
+    "numberOfContacts": "2",
+    "yearBusinessStarted": 0,
+    "mon_id" : "62f225c1cb81aa2ff3c7fc53"
+  }
+}]

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="post:\Insurance\serviceContracts:application\json:insurance-management-claim-system-api-config">
+		<ee:transform doc:name="mapping fields" doc:id="b2963a9e-28d2-46f1-8e8f-c1aefd405fa0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+    Type__c: payload01."type",
+    Priority__c: payload01.priority,
+    ClaimId__c: payload01.claimId,
+    ActivityId__c: payload01.activityId,
+    AccountId: payload01.'Account Id',
+    Name: payload01.name
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create service contract" doc:id="bdf01697-5dc0-4b3f-bed9-397df7d16001" config-ref="Salesforce_Config" type="ServiceContract"/>
+		<logger level="INFO" doc:name="payload" doc:id="7f4c11fe-c838-4fa3-81b8-bae4e1e6e449" message="#[payload]"/>
+		<ee:transform doc:name='"serviceContract has been created successfully"'>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "serviceContract has been created successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\Insurance\serviceContracts\(contractId):application\json:insurance-management-claim-system-api-config">
+		<ee:transform doc:name="mapping fields" doc:id="092636f9-6bc3-4c87-b1d6-191fd751228f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Id: attributes.uriParams.contractId,
+	status__c: payload.status
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Updating status of service contracts" doc:id="9071f0b8-b014-4e11-8b16-a0375c6b26b4" config-ref="Salesforce_Config" objectType="ServiceContract" externalIdFieldName="Id"/>
+		<ee:transform doc:name='"serviceContract status has been updated successfully"'>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "serviceContract status has been updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    
+	</mule>

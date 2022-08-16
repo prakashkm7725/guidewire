@@ -1,0 +1,41 @@
+[{
+
+    
+  "Documents": {
+    "mon_id": "62f22caccb81aa2ff3c7fc5f",
+    "Document_id": "DOC21891ID",
+    "Account_id": "ACC21891ID",
+    "Policy_Id": "",
+    "contingency": {
+      "displayName": "Guidewire.pdf",
+      "id": "CONT21891ID"
+    },
+    "dateModified": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "description": "The data model for guidewire.",
+    "language": "English",
+    "mimeType": "application/pdf",
+    "obsolete": true,
+    "recipient": "John",
+    "status": {
+      "code": "2",
+      "name": "Active"
+    },
+    "type": {
+      "code": "1",
+      "name": "PDF Document"
+    },
+    "links": {
+      "property1": {
+        "href": "https://docs.guidewire.com/cloud/pc/202111/apiref/generated/Account%20API/accounts--accountId--contacts--contactId---get"
+      }
+    },
+    "securityType": {
+      "code": "2",
+      "name": "Password encrypted"
+    }
+  }
+}]

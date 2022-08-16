@@ -1,0 +1,15 @@
+[
+  {
+    "objectName": "Contact",
+    "Fields": {
+      "fieldslist": [
+        "Id",
+        "Name",
+        "LoginID__c",
+        "Account.Id"
+      ]
+      
+      
+    } 
+  }
+]

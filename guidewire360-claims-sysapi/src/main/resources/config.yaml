@@ -1,0 +1,6 @@
+http:
+  host: "localhost"
+  port: "8081"
+  
+mongodb:
+  connectionString: "mongodb+srv://prakashsr:rqEICMCTPE5y0P4M@fiscluster.ulxri.mongodb.net/NewGuidewire?retryWrites=true&w=majority"

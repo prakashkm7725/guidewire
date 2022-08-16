@@ -1,0 +1,67 @@
+[{
+  "Policy": {
+    "mon_id": "62f22bf5cb81aa2ff3c7fc5b",
+    "Policy_id": "POC21891ID",
+    "Account_id": "ACC21891ID",
+    "cancellationDate": {
+      "$date": {
+        "$numberLong": "1692886522000"
+      }
+    },
+    "createdDate": {
+      "$date": {
+        "$numberLong": "1598278522000"
+      }
+    },
+    "nonRenewalExplanations": [
+      {
+        "body": "Selling the property due to emergency",
+        "code": 2
+      }
+    ],
+    "nonRenewalReason": "Selling the property",
+    "periodEnd": {
+      "$date": {
+        "$numberLong": "1598278522000"
+      }
+    },
+    "periodStart": {
+      "$date": {
+        "$numberLong": "1566656122000"
+      }
+    },
+    "policyNumber": "Uaz374927193828",
+    "totalCost": {
+      "amount": "648268.93",
+      "currency": "INR"
+    },
+    "totalPremium": {
+      "amount": "782937.98",
+      "currency": "string"
+    },
+    "primaryInsured": {
+      "displayName": "Home",
+      "id": "2"
+    },
+    "preRenewalOwner": {
+      "autoAssign": true,
+      "name": "John",
+      "userId": "USER21891Id"
+    },
+    "preferredCoverageCurrency": {
+      "code": "5",
+      "name": "Rupee"
+    },
+    "product": {
+      "displayName": "3BHK Flat",
+      "id": "PROD21891ID",
+      "type": "Home"
+    },
+    "termType": {
+      "code": 4,
+      "name": "long"
+    }
+  }
+}
+  
+  ]

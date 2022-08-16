@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="564f83aa-e89c-4ed7-bd8a-1dd9053755b5" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="f650dbf3-f9fe-4cb6-860c-ed59c38aa664" basePath="/api">
+		<http:request-connection host="insurance-system-api.sg-s1.cloudhub.io" />
+	</http:request-config>
+	<flow name="insurance-360-process-apiFlow" doc:id="61b07670-f767-455f-a324-123f0ae827fe" >
+		<http:listener doc:name="Listener" doc:id="a4b79ecf-d4c7-4209-a410-7cc608d3d8ff" config-ref="HTTP_Listener_config" path="/api/policy"/>
+		<set-variable value="#[attributes.queryParams.accountId]" doc:name="Set Variable" doc:id="2fd51ce1-fca5-4a5c-b6ac-18730e147811" variableName="accountId"/>
+		<logger level="INFO" doc:name="Logger" doc:id="b5db4dd8-273a-40c1-bf50-6d8a80840891" message="#[vars.accountId]" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="26ccb16a-0d0a-4040-9171-bc9262434abb" >
+			<route >
+				<flow-ref doc:name="Activity Flow Ref" doc:id="1ff22810-22d4-4fe6-a0a1-abe073143aa4" name="insurance-360-activity-apiFlow"/>
+				<ee:transform doc:name="Transform Message" doc:id="f4ef4224-aa4e-4e08-81a6-180c848bf79d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<flow-ref doc:name="Policy Flow Ref" doc:id="e9afd21d-1c1b-4889-9a01-c4db52894d2c" name="insurance-360-policy-api"/>
+				<ee:transform doc:name="Transform Message" doc:id="71d61bd9-3c07-4b6a-afaf-a0a9294703f0" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="23362ae4-453f-459d-9728-29cf6e448ddb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+(flatten(payload..payload)) reduce($$ ++ $)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="eed03c1b-1103-463d-b3a1-9e2924c476e8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "Accounts" : {
+        "name" : "FED",
+        "records" : "",
+        "children" : payload
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="claimFlow" doc:id="30adfb5c-50b1-403b-9463-bfe92b2a2efe" >
+		<http:listener doc:name="Listener" doc:id="1e5e1963-188a-4ca5-8dd6-1c18783e941c" config-ref="HTTP_Listener_config" path="/api/claim"/>
+		<set-variable value="#[attributes.queryParams.accountId]" doc:name="Set Variable" doc:id="cd57f1e4-e077-4c3a-8de8-3af3d8219760" variableName="accountId"/>
+		<flow-ref doc:name="Claim Api flow ref" doc:id="d2515033-8647-4698-a855-ab94ae76a93a" name="insurance-360-claimApi-implFlow" />
+		<ee:transform doc:name="Transform Message" doc:id="5494f946-597b-4fd3-8085-671e31fa1345">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+	</flow>
+</mule>

@@ -1,0 +1,26 @@
+%dw 2.0
+
+type auto_13632daa_a21a_496c_9c15_c17e4011a14f_Input_Payload = Array<Array<Document>>
+type Document = {|
+  "_id"?: {|  |}, 
+  ClaimId?: String, 
+  ContactId?: String, 
+  EmailId?: String, 
+  primaryPhone?: String, 
+  Channel?: String, 
+  batched?: String, 
+  "created date"?: DateTime, 
+  status?: String, 
+  address?: {|
+    addressLine1?: String, 
+    addressLine2?: String, 
+    addressLine3?: String, 
+    city?: String, 
+    country?: String
+  |}, 
+  content?: String, 
+  id?: String
+|} {"typeId": "Document"}
+
+
+

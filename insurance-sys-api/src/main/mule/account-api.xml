@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd">
+	<flow name="get:\Insurance-360\policies\accounts\(accountId):insurance-360-system-api-config" doc:id="550fff82-6067-497b-b80f-2e605819a5ae">
+		<ee:transform doc:name="MongoDb Query" doc:id="4037e648-7ab0-419c-9f46-460a6519bc69" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Account.id" : attributes.uriParams.'accountId'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[attributes.uriParams.'accountId']" doc:name="Set Variable" doc:id="94af6d12-513e-422a-a7fb-7da686837ac3" variableName="accountId"/>
+		<mongo:find-documents doc:name="Find documents" doc:id="45ac9943-e161-449e-81c4-663c0379f7cb" collectionName="Guidewire-Account" fields="," config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="f4db40ba-b944-467c-a9ca-7b4c01df1b90" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="8fb97f1c-d82c-46fc-a47e-361309884301" message="#[payload]"/>
+    
+</flow>
+<flow name="get:\Insurance-360\policies\accounts\(accountId)\activities:insurance-360-system-api-config" doc:id="bf2e897e-4533-4887-a30f-0c5c8a1b17a4" >
+		<ee:transform doc:name="MongoDb Query" doc:id="3df03cc4-8284-4b2b-a154-964b4de422f6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Activity.accountId" : attributes.uriParams.'accountId'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[attributes.uriParams.'accountId']" doc:name="Set Variable" doc:id="3a32697f-3ced-4141-94a4-9416a50fba4b" variableName="accountId"/>
+		<mongo:find-documents doc:name="Find documents" doc:id="eaee2208-d8ab-412e-b548-6baac10d9acc" collectionName="Account-Activity" fields="," config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="a868f6b1-018e-410e-89f1-ecc305c87d87" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0fea1961-c5ba-48d4-b7bf-404c2594f7f8" message="#[payload]"/>
+	</flow>
+	<flow name="get:\Insurance-360\policies\accounts\(accountId)\activity-assignees:insurance-360-system-api-config" doc:id="4f5d304c-624b-46ba-9d28-cfcfadf58be5" >
+		<ee:transform doc:name="MongoDb Query" doc:id="3ea59a9e-f40f-48ce-8e1e-8bb29ec73cf5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Assignee.accountId" : attributes.uriParams.'accountId'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[attributes.uriParams.'accountId']" doc:name="Set Variable" doc:id="fd78bf57-2f6a-46d4-aaad-8ad1f2e8ce6a" variableName="accountId"/>
+		<mongo:find-documents doc:name="Find documents" doc:id="3d755fb7-3a27-468a-935d-0f0365ad2c42" collectionName="Account-Assignee" fields="," config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="62ad27a2-f322-448b-99f7-6692a59459f7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="eb0a9a6e-593d-4615-9811-7d327c8a82be" message="#[payload]"/>
+	</flow>
+	<flow name="get:\Insurance-360\policies\accounts\(accountId)\activity-patterns:insurance-360-system-api-config" doc:id="c7dcc068-f142-422f-b388-ebce58f2bf26" >
+		<ee:transform doc:name="MongoDb Query" doc:id="de24b424-c1c4-40a1-ae1e-03fcea1066fc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ActivityPattern.accountId" : attributes.uriParams.'accountId'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[attributes.uriParams.'accountId']" doc:name="Set Variable" doc:id="449ce9ab-9f7d-4369-b793-e93c20d257d4" variableName="accountId"/>
+		<mongo:find-documents doc:name="Find documents" doc:id="3b19600e-4525-4f61-b813-854615d1bf6c" collectionName="Account-Patterns" fields="," config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="05b31839-9ead-443b-8a6a-689055a91f22" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9433a63f-bcd9-49d4-8709-ce5b9157ddaa" message="#[payload]"/>
+    
+	</flow>
+	</mule>

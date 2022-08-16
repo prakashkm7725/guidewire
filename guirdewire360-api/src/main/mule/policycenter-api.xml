@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="insurance-360-activity-apiFlow" doc:id="97b5d929-acd1-4ac2-8718-69b6ad945a27" >
+		<logger level="INFO" doc:name="Logger" doc:id="3456df33-1a07-40d9-973d-30323560cd52" message="#[vars.accountId]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="65cfa67b-358e-4741-aef9-fb5836af3381" >
+			<route >
+				<http:request method="GET" doc:name="Get Account" doc:id="edb8b9d3-7681-4d17-9368-a330fa318f6e" path="/Insurance-360/policies/accounts/{id}" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+				</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="7cf9e92b-d53e-476a-ba6f-88bf664d5be9">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<http:request doc:name="get-Contact" path='/Insurance-360/policies/accounts/{id}/contacts' doc:id="59513929-5f8b-48ac-a7a1-d2882b2859a0" method="GET" config-ref="HTTP_Request_configuration">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="aeba256b-4458-4727-acc8-e7f76e04bde8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route >
+				<http:request doc:name="get Account Patterns" path='/Insurance-360/policies/accounts/{id}/activity-patterns' doc:id="a29bb195-43f4-4fee-93bd-0b40ce603547" method="GET" config-ref="HTTP_Request_configuration">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="52c2ef24-cfa4-4b03-8912-4c0325d9f956" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route >
+				<scatter-gather doc:name="getAccountActivity" doc:id="9f688dee-90d1-4244-941e-680be73f37f2" >
+					<route >
+						<http:request method="GET" doc:name="get activityType" doc:id="b195e6d1-ee92-4a08-9077-bf8bd4f92a1d" config-ref="HTTP_Request_configuration" path="/Insurance-360/policies/accounts/{id}/activities/activityType">
+							<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+						</http:request>
+						<ee:transform doc:name="get-activityType" doc:id="9ea4c9a0-cf37-4d4c-8fde-5c6391e1c9eb" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</route>
+					<route >
+						<http:request method="GET" doc:name="get assignedUser" doc:id="2d242d74-4362-4fdb-9e25-339cdb1facea" config-ref="HTTP_Request_configuration" path="/Insurance-360/policies/accounts/{id}/activities/assignedUser">
+							<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+						</http:request>
+						<ee:transform doc:name="getassignedUser" doc:id="c982980d-bc62-44b1-9d09-9579b0f2d46c">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</route>
+				</scatter-gather>
+				<ee:transform doc:name="Transform Message" doc:id="c2d35ef1-10b5-46f3-90a9-703cec3df397">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(flatten(payload..payload)) map($ - ("_id"))]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="85c76c23-de32-49ce-8140-9cc7715d3e37" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "Activity" : [
+        {
+            "accountId" : "",
+            "records" : "",
+            "children" : {
+                "activityType" : payload.activityType,
+                "assignedUser" : payload.assignedUser
+            }
+        }
+    ]
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+<route >
+				<http:request doc:name="get Account Assignee" path='/Insurance-360/policies/accounts/{id}/activity-assignees' doc:id="fe90caec-5584-48a2-903e-c9af775314f9" method="GET" config-ref="HTTP_Request_configuration">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="0a1ae041-8398-42c3-b673-ff64528e18bd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route >
+				<scatter-gather doc:name="getNotes" doc:id="925f196f-7c69-4a9f-8004-66f0f58031e6" >
+					<route >
+						<http:request method="GET" doc:name="Author" doc:id="637c17e0-83d0-45ce-a8a6-ad4d758871be" config-ref="HTTP_Request_configuration" path="/Insurance-360/policies/accounts/{id}/notes/noteauthor">
+							<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+						</http:request>
+						<ee:transform doc:name="Transform Message" doc:id="12c37f59-01f9-4bb3-a84a-58744664e992" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</route>
+					<route >
+						<http:request method="GET" doc:name="Policies" doc:id="72697e5d-e08b-481f-929a-50fd093d13ef" config-ref="HTTP_Request_configuration" path="/Insurance-360/policies/accounts/{id}/notes/notepolicy">
+							<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.accountId
+}]]]></http:uri-params>
+						</http:request>
+						<ee:transform doc:name="Transform Message" doc:id="21b095a9-444b-4eec-af76-a4af46cc69de" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</route>
+				</scatter-gather>
+				<ee:transform doc:name="Transform Message" doc:id="a93c4785-700f-4dea-adb9-d1c6d35bc79d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+(flatten(payload..payload)) map($ - ("_id"))]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="ef1ed553-a659-469a-9dff-ada54179a0fc" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "Note" : [
+        {
+            "records" : "",
+            "children" : {
+                "accountId" : "",
+                "author" : payload.author,
+                "policy" : payload.policy
+            }
+        }
+    ]
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="b91158cd-1065-4f3c-af66-c117305c42d5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(flatten(payload..payload)) map($ - ("_id"))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="2b2202a7-f778-4cb4-b555-534f20833649" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var accContact=AccountContact:flatten(payload ..AccountContact)
+var accPattern=ActivityPattern:flatten(payload..ActivityPattern)
+var accActivity=Activity:flatten(payload..Activity)
+var accAssignee=Assignee:flatten(payload..Assignee)
+var accNote=Note:flatten(payload..Note)
+var guidewireAcc=Account:flatten(payload..Account)
+---
+"Account" : {
+    "AccountHolderName" : guidewireAcc.Account.accountHolder.displayName[0],
+    "accountNumber" : guidewireAcc.Account.accountNumber[0],
+    "records" : "",
+    "children" : [
+     accContact ++ accPattern ++ accActivity ++ accAssignee ++ accNote
+]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	
+</flow>
+	<flow name="insurance-360-policy-api" doc:id="b1c92d87-acb7-4d79-adfd-0d561ec9a56d" >
+		<http:request method="GET" doc:name="Get Policies" doc:id="64b76468-452e-465c-bc6d-d0f826f0cad7" path='/Insurance-360/policies/accounts/{accountId}/policies' config-ref="HTTP_Request_configuration">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"accountId" : vars.accountId
+}]]]></http:uri-params>
+		</http:request>
+		
+			<ee:transform doc:name="PolicyId" doc:id="e1b6afb0-1d90-450d-8f45-6d0513de5328">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.Account.policyId]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="policyArray" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	
+]]]></ee:set-variable>
+			</ee:variables>
+		
+</ee:transform>
+			<foreach doc:name="For Each" doc:id="0a6d326d-23bc-4079-a796-f5430ca14c99" collection="#[payload]">
+		<logger level="INFO" doc:name="PolicyID" doc:id="9c32c2cb-8897-4c68-8a84-8ba2e0613fe9" message="#[payload]" />
+			<scatter-gather doc:name="Scatter-Gather" doc:id="9f62f68d-9247-4c14-80a0-09d609c99823">
+			<route>
+				<http:request method="GET" doc:name="Get policy-account" doc:id="df3a1fe6-be72-4465-bdeb-36d1c148e2e7" path="/Insurance-360/policies/{policyId}/account" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+				</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="4b855f4f-a055-4542-aa9d-133fcf1ce346">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			
+</route>
+			<route>
+				<http:request doc:name="get-Policy-activities" path="/Insurance-360/policies/{policyId}/activities" doc:id="3c468d7e-73a6-41f3-8d07-dd1715ecd32f" method="GET" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="e2099e08-19c7-4324-9ec1-79df728493ef">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route>
+				<http:request doc:name="get-policy-activity-assignees" path="/Insurance-360/policies/{policyId}/activity-assignees" doc:id="dce3e8b4-74e5-4560-a735-9f325f005fb6" method="GET" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="20ba7ff6-2080-4aa5-b320-7a4f6fe9729a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route>
+				<http:request doc:name="get-policy-questions" path="/Insurance-360/policies/{policyId}/questions" doc:id="256b02a5-1853-4dae-8990-369803c9848b" method="GET" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="8c1e5eb2-84a6-4f40-9d19-77018c1c4f13">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route>
+				<http:request doc:name="get-policy-PaymentInfo" path="/Insurance-360/policies/{policyId}/PaymentInfo" doc:id="c9028a20-27da-4c3a-8854-70806eae8e11" method="GET" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="81c3296b-93ca-494e-9ee1-f0bd9877aeb7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route>
+				<scatter-gather doc:name="get-contingencies" doc:id="e7753022-2191-4fde-b98a-48770959d3fd">
+				<route>
+				<http:request doc:name="get-policy-contigencies-document" path="/Insurance-360/policies/{policyId}/contingencies/document" doc:id="d05372f4-e913-4fbb-aa8a-1dcc100f1a36" method="GET" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="69bd1cb7-496e-446b-ac74-ee98c1ddc036">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route>
+				<http:request doc:name="get-policy-contigencies-notes" path="/Insurance-360/policies/{policyId}/contingencies/policyNotes" doc:id="8b19bfc1-3230-49a8-9bd1-c12fed36e422" method="GET" config-ref="HTTP_Request_configuration">
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"policyId" : payload
+}]]]></http:uri-params>
+
+
+        </http:request>
+		<ee:transform doc:name="Transform Message" doc:id="066f2283-8bc7-4c92-8cb3-ef8d88862606">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+	
+			
+</scatter-gather>
+<ee:transform doc:name="Transform Message" doc:id="e837502b-881c-4753-befc-405a34a6ec86">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="1a0f9e9a-1556-4ebc-970e-f378a3cb4ac1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"contingencies" : {
+    "records" :"",
+    "children" : [
+        "document": payload.document,
+        "Policy-notes": payload."Policy-notes"
+    ]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			
+		
+</scatter-gather>
+			<ee:transform doc:name="Transform Message" doc:id="03a8fef0-aaf2-4a24-9036-de0deea81f7f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(flatten(payload..payload)) map($ - ("_id"))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="67518453-c1a9-43fe-895a-b75f38984603" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="policyArray" ><![CDATA[%dw 2.0
+output application/json
+var acc="Account" : flatten(payload..Account)
+var actType="activityType" : flatten(payload..activityType)
+var actAssignee="activityAssignee" : flatten(payload..activityAssignee)
+var policyQuestions="questions" : flatten(payload..questions)
+var policyConting="contingencies" : flatten(payload..contingencies)
+var policyPaymentInfo="PaymentInfo" : flatten(payload..PaymentInfo)
+---
+vars.policyArray + (acc ++ actType ++ actAssignee ++ policyQuestions ++ policyPaymentInfo ++ policyConting)]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+
+</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="8df189dd-3ed3-4701-aa69-7cd25636f169" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "policies": {
+    "records": "",
+    "children" : vars.policyArray
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+</flow>
+<flow name="insurance-360-claimApi-implFlow" doc:id="dc533459-3ca1-4c6b-810c-2cd56ba8b7cb" >
+		<http:request method="GET" doc:name="Request" doc:id="4dd8d358-e17e-4ffb-b287-15e3b7924a35" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{accId}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"accId" : vars.accountId
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="96d7f3d3-666e-47bc-87b1-51cce6f1f0e8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.Claims.claimId]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="claimArray" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	
+]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="35ed9f6f-94fe-4cf0-88c2-d71d1ccf2eed" collection="#[payload]">
+			<logger level="INFO" doc:name="Logger" doc:id="3097f6c4-de5f-4911-8750-9fe93733306b" message="#[payload]"/>
+			<scatter-gather doc:name="Scatter-Gather" doc:id="4f9d8bf7-e178-4f24-a644-2849cb9db1b1" >
+				<route >
+					<scatter-gather doc:name="Scatter-Gather" doc:id="add1fd93-0712-47a8-b5b4-674bd3687dec" >
+						<route >
+							<http:request method="GET" doc:name="get ClaimActivities" doc:id="1012860a-f98a-4bbe-96ca-f3c551d471dd" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/ClaimActivities">
+						<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+					</http:request>
+							<ee:transform doc:name="Transform Message" doc:id="0fddf445-2011-4abf-821b-3a3e281a28bb" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</route>
+						<route >
+							<http:request method="GET" doc:name="get ClaimActivityAssignees" doc:id="c70ade9f-2f8b-40f4-837e-4354966776ce" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/ClaimActivityAssignees">
+						<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+					</http:request>
+							<ee:transform doc:name="Transform Message" doc:id="c15113b5-3448-498a-891b-55db7e65accc" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</route>
+						<route >
+							<scatter-gather doc:name="Scatter-Gather" doc:id="965df238-74e6-4b21-80e3-a2940f2ffd0e" >
+								<route >
+									<http:request method="GET" doc:name="Get Notes" doc:id="4be3574a-5d48-4e8e-a431-c1266c49c1a8" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/ClaimActivityPatterns/Notes">
+										<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+									</http:request>
+									<ee:transform doc:name="Transform Message" doc:id="7ce89199-f462-4f31-a848-0b6f50cb04fc" >
+										<ee:message >
+											<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+										</ee:message>
+									</ee:transform>
+								</route>
+								<route >
+									<http:request method="GET" doc:name="get Documents" doc:id="63bba2d6-6c68-492d-87f6-cee3d1351ce6" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/ClaimActivityPatterns/Documents">
+										<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+									</http:request>
+									<ee:transform doc:name="Transform Message" doc:id="f390ce6c-231c-4821-ae72-45dce78f2bec" >
+										<ee:message >
+											<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+										</ee:message>
+									</ee:transform>
+								</route>
+							</scatter-gather>
+							<ee:transform doc:name="Transform Message" doc:id="2c034549-8302-47f7-86e9-7844051499fb">
+								<ee:message>
+									<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+							<ee:transform doc:name="Transform Message" doc:id="c4538d49-815a-4504-9754-01ace45a3437" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ClaimActivityPatterns" : [
+		{
+			"Records" : "",
+			"children" : [
+				{
+					"Notes" : flatten(payload.Notes),
+					"Documnets" : flatten(payload.Documnets)
+				}
+			]
+		}
+	]
+}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</route>
+					</scatter-gather>
+					<ee:transform doc:name="Transform Message" doc:id="04d786bc-5053-4ceb-99b1-91599dee15f1" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<ee:transform doc:name="Transform Message" doc:id="afdbd49b-e8b0-4dc8-8007-d1f2240cb8f8" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Claim" : [
+		{
+			"records" : "",
+			"children" : {
+				"ClaimActivities" : flatten(payload.ClaimActivities),
+				"ClaimActivityAssignees" : flatten(payload.ClaimActivityAssignees),
+				"ClaimActivityPatterns" : flatten(payload.ClaimActivityPatterns)
+			}
+		}
+	]
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</route>
+				<route >
+					<scatter-gather doc:name="Scatter-Gather" doc:id="705352de-d12b-48e1-9dec-d6171a8d6c19" >
+						<route >
+							<http:request method="GET" doc:name="get Contact" doc:id="89504219-34e5-446e-80b4-d3795b9e4345" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/acknowledge-submission/ClaimContact">
+						<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+					</http:request>
+							<ee:transform doc:name="Transform Message" doc:id="6e5f4771-4816-4019-9652-64fd7a38d354" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</route>
+						<route >
+							<http:request method="GET" doc:name="get DwellingIncident" doc:id="b5d01238-ef1f-4629-8314-9a89538b5f0f" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/acknowledge-submission/DwellingIncident">
+								<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+							</http:request>
+							<ee:transform doc:name="Transform Message" doc:id="b023977b-226f-482f-99b1-c3a1e8350892" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</route>
+					</scatter-gather>
+					<ee:transform doc:name="Transform Message" doc:id="b3778602-cdb5-40c7-88c4-a73f4ffc6740" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<ee:transform doc:name="Transform Message" doc:id="98cefede-5d59-444e-81b9-be45f0eca9a8" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"acknowledge-submission" : [
+		{
+			"records" : ""
+		},
+		{
+			"children" : {
+				"ClaimContact" : flatten(payload.ClaimContact),
+				"DwellingIncident" : flatten(payload.DwellingIncident)
+			}
+		}
+	]
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</route>
+				<route >
+					<http:request method="GET" doc:name="get PolicyCoverage" doc:id="8dedccad-9232-48b7-a190-fe43d32446b3" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/policy/coverages">
+						<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+					</http:request>
+					<ee:transform doc:name="Transform Message" doc:id="baebf4af-eb8c-4a4c-9f7c-241ba6ec8dbc" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</route>
+				<route >
+					<http:request method="GET" doc:name="get service-requests" doc:id="f27bedc3-1b2f-43f5-adca-2862ab5f6591" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/service-requests">
+						<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+					</http:request>
+					<ee:transform doc:name="Transform Message" doc:id="aa406e02-7b3e-4207-b5ea-f5b3960cb563" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</route>
+				<route >
+					<http:request method="GET" doc:name="get Payment" doc:id="33d20ba9-3a0c-41d1-89bc-dea599fd4270" config-ref="HTTP_Request_configuration" path="/Insurance-360/claim/v1/claims/{claimId}/payments">
+						<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"claimId" : payload
+}]]]></http:uri-params>
+					</http:request>
+					<ee:transform doc:name="Transform Message" doc:id="af26f7ce-fd3d-4311-be85-db09086f92ac" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</route>
+			</scatter-gather>
+			<ee:transform doc:name="Transform Message" doc:id="0b7912d2-bd81-4797-85ca-2d23d7399983">
+								<ee:message>
+									<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(flatten(payload..payload)) map($ - ("_id"))]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="f46215b0-9970-4325-9fbe-ac2b311814f2">
+			<ee:message>
+			</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="claimArray" ><![CDATA[%dw 2.0
+output application/json
+var getClaim=Claim: flatten(payload..Claim)
+var ackSubmission="acknowledge-submission" : flatten(payload..'acknowledge-submission')
+var policyCovg=PolicyCoverage: flatten(payload..PolicyCoverage)
+var serviceReq="service-requests":flatten(payload..'service-requests')
+var claimPayment=Payment:flatten(payload..Payment)
+---
+vars.claimArray + (getClaim ++ ackSubmission ++ policyCovg ++ serviceReq ++ claimPayment)]]></ee:set-variable>
+				</ee:variables>
+		</ee:transform>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="7aa57aa8-aab7-45ec-8c84-d8c04cd5d0d3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Claims" : {
+		"name" : "HDFC",
+		"AccountId" : vars.accountId,
+		"claimId" : "",
+		"records" : "",
+		"children" : vars.claimArray
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

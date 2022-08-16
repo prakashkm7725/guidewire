@@ -1,0 +1,40 @@
+[
+  {
+
+    
+  "payments": {
+    "mon_id": "62f22c41cb81aa2ff3c7fc5d",
+    "payments_id": "PAY21891ID",
+    "alternateBillingAccount": "ACC21890ID",
+    "billingContact": {
+      "displayName": "Tom Cruise",
+      "id": "USER21ID"
+    },
+    "billingMethod": {
+      "code": "2",
+      "name": "NORMAL"
+    },
+    "selectedPaymentPlan": {
+      "billingId": "BIL76ID",
+      "downPaymentAmount": {
+        "amount": "653.87",
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": "2100.87",
+        "currency": "INR"
+      },
+      "installmentAmount": {
+        "amount": "121.90",
+        "currency": "INR"
+      },
+      "notes": "Amount payed through neft.",
+      "planName": "HOME-PLAN",
+      "total": {
+        "amount": "7632645.76",
+        "currency": "INR"
+      }
+    }
+  }
+}
+]

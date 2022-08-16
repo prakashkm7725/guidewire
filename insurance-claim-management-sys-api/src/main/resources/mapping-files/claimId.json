@@ -1,0 +1,16 @@
+[
+  {
+    "objectName": "Claim__c",
+    "Fields": {
+      "fieldslist": [
+        "Id",
+        "PolicyId__c",
+        "Name",
+        "Domicilary__c",
+        "ClaimStatus__c"
+      ]
+      
+      
+    } 
+  }
+]

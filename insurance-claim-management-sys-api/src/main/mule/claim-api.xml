@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <flow name="get:\Insurance\claims\(claimId):insurance-management-claim-system-api-config">
+        <ee:transform doc:name="query to get claims" doc:id="f5a7478d-3220-4ce9-a209-625ad88002ce" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/json
+var filedata = readUrl("classpath://mapping-files/claimId.json", "application/json")
+---
+"Select " ++ joinBy (filedata[0].Fields.fieldslist ,",") ++ " from " ++ filedata[0].objectName ++ " Where Id= '" ++ attributes.uriParams.claimId ++ "'"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:query doc:name="select by claimId" doc:id="53296911-e640-4294-9c3f-8d43700ea708" config-ref="Salesforce_Config">
+            <salesforce:salesforce-query><![CDATA[#[payload]]]></salesforce:salesforce-query>
+        </salesforce:query>
+        <ee:transform doc:name="payload" doc:id="31586dc7-824e-4e55-bd4c-4402c9f69b98" >
+            <ee:message >
+                <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <ee:transform doc:name="mapping fields" doc:id="a8a0a4a7-bc34-4878-979c-4db2af853b5f" >
+            <ee:message >
+                <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var a = payload reduce ($$)
+---
+{
+claimNumber: a.Id ,
+"Domicilary": a.Domicilary__c,
+"PolicyId": a.PolicyId__c,
+"ClaimStatus": a.ClaimStatus__c,
+"Id": a.Id,
+"type": a."type",
+"Name": a.Name
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="payload" doc:id="d6bacb57-a08b-4127-abad-8e839c7593d3" message="#[payload]" />
+        <ee:transform doc:name="payload" doc:id="c0f56733-a5ba-416b-a985-bdd51467b6c8">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    
+	<flow name="put:\Insurance\claims\(claimId)\status:application\json:insurance-management-claim-system-api-config">
+		<ee:transform doc:name="vars.claimId">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<ee:transform doc:name="to be updated records" doc:id="29d9cebd-42eb-47fa-a69e-0bb1a46e15c8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	"Id": vars.claimId ,
+	"ClaimStatus__c": payload.status reduce($$)
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Upsert the status" doc:id="97f8cc01-2245-4b45-aba9-55a9766b415f" config-ref="Salesforce_Config" objectType="Claim__c" externalIdFieldName="Id"/>
+        <logger level="INFO" doc:name='"priority has been updated successfully"' doc:id="a1575214-3783-49b9-9451-6859289cc733" message="#[payload]" />
+		<ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+     <flow name="get:\Insurance\claims\user:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="mapping fields" doc:id="937e8fc7-ce4f-43f4-8cc1-e537110e6182" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/json
+var filedata = readUrl("classpath://mapping-files/userGet.json", "application/json")
+---
+"Select " ++ joinBy (filedata[0].Fields.fieldslist ,",") ++ " from " ++ filedata[0].objectName ++ " Where phone= '" ++ attributes.queryParams.phoneno ++ "' And email='" ++ attributes.queryParams.email ++ "'"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:query doc:name="select by phone and email" doc:id="efff80ef-0f5e-4341-8757-f2d04eb250a4" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[#[payload]]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="payload" doc:id="beba3cd5-07d6-4191-86aa-2d8c55643480" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+    <flow name="post:\Insurance\claims:multipart\form-data:insurance-management-claim-system-api-config">
+		<ee:transform doc:name="Transform Message" doc:id="4873ae88-2f01-4eaa-95c5-d5482907f83c" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="multipartdata" ><![CDATA[payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="vars" doc:id="aeb57848-254e-472b-bfd6-dae2ff958060" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="filename" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.parts..filename]]></ee:set-variable>
+				<ee:set-variable variableName="fileContent" ><![CDATA[%dw 2.0
+
+output application/java
+---
+payload.parts..*content
+
+
+]]></ee:set-variable>
+				<ee:set-variable variableName="sfInput" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	(payload.parts filterObject ((value, key, index) -> value..'Content-Type' == null)) mapObject(($$):$.content)
+]]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="vars.claimName,vars.typeOfClaim" doc:id="856a733e-2f22-43fd-a7c5-500c9f98c64e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="typeOfClaim" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.sfInput."type of claim" reduce ($$)]]></ee:set-variable>
+				<ee:set-variable variableName="claimName" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.sfInput.name reduce($$)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="mapping fields" doc:id="06402da7-e3fd-47f0-9cd0-6054b72e9141" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.sfInput map ( sfInput , indexOfSfInput ) -> {
+	Name: sfInput.name,
+	Domicilary__c: sfInput.'hospitilization/domicilary',
+	PolicyId__c: sfInput.policyId,
+	type_of_claim__c: sfInput."type of claim",
+	Address__c: sfInput.address,
+	State__c: sfInput.state,
+	Country__c: sfInput.country,
+	Date_Of_Birth__c: sfInput.Dob,
+	InsuredAmount__c: sfInput."Insured Amount" as Number,
+	Zipcode__c: sfInput."zipcode",
+	ContactId__c : sfInput.ContactId
+}]]></ee:set-payload>
+
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		
+</ee:transform>
+		<salesforce:create type="Claim__c" doc:name="Create claims" doc:id="27fa8f7e-e61a-4836-9ad9-d45c192e1809" config-ref="Salesforce_Config" target="claimDetails" targetValue="#[payload.items.id reduce ($$)]">
+		</salesforce:create>
+		<logger level="INFO" doc:name='"Claim has been inserted successfully"' doc:id="bff588ed-3b94-4a90-b42d-c1635f4b3d7d" message='#["Claim has been inserted successfully"]' />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="1e1191a0-cf1b-428f-aa96-da890d35981b" >
+			<route >
+				<ee:transform doc:name="query to get checksetsTemplate" doc:id="6e82a51b-0d77-477f-a04c-0f0590846ee0">
+			<ee:message>
+				<ee:set-payload><![CDATA["Select Question__c from ChecksetTemplate__c where Type__C='" ++ vars.typeOfClaim ++"'"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:query doc:name="get checksetTemplate by type of claim" doc:id="5ec492e3-e598-4e09-b6ec-8c7726173914" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[#[payload]]]></salesforce:salesforce-query>
+		</salesforce:query>
+				<ee:transform doc:name="data to create checkset" doc:id="2b0582db-28e4-491d-ad8b-68241ccaa0a8">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item, index) -> {"Question" : item.Question__c } )]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<foreach doc:name="For Each" doc:id="c68e8638-34ba-41c0-a2bb-0d81b18bc10b" collection="#[payload]" counterVariableName="createCheckset">
+			<ee:transform doc:name="payload" doc:id="51de4dc4-ca8b-4df8-9152-9312b677330d">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+var number = 0
+---
+[{
+	Question__c: payload.Question as String,
+	claimId__c: vars.claimDetails,
+	Name: vars.typeOfClaim ++ " - checkset -" ++ vars.claimName
+}]]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<salesforce:create doc:name="Create checks" doc:id="c7c21974-36f2-45c3-8270-5e9cb86d98ac" config-ref="Salesforce_Config" type="Checkset__c" />
+		
+</foreach>
+				<logger level="INFO" doc:name='"CheckSets has been created"' doc:id="dd817633-1dd9-47cb-a18d-b25a84e2041a" message='#["CheckSets has been created"]' />
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="fade173e-844a-4901-9f52-61f5b61c1220" />
+<!-- [STUDIO:"For Each"]				<foreach doc:name="For Each" doc:id="a58be069-379b-4e95-9514-656b3b6a5827" collection="#[vars.filename]">
+					<s3:create-object doc:name="Create files in aws" doc:id="1ad1b8b0-06ee-415a-b300-ac3998aab473" config-ref="Amazon_S3_Configuration" bucketName="insurance360-claim" key='#[vars.claimDetails ++ "/" ++ payload]'>
+						<s3:object-content ><![CDATA[#[vars.fileContent [vars.counter - 1]]]]></s3:object-content>
+					</s3:create-object>
+					<ee:transform doc:name="payload" doc:id="0b10edd0-5c1d-46a7-ba6d-e55c78f77b3e" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name='"Files inserted successfully to S3"' doc:id="3d9ae950-6fbc-4fd9-bef2-2fa082c1e5d7" message='#["Files inserted successfully to S3"]'/>
+				</foreach> [STUDIO] -->
+			</route>
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="3fd81434-51a7-4176-a345-db95e01eaf13">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="contentversion"><![CDATA[%dw 2.0
+import toBase64 from dw::core::Binaries
+import * from dw::core::Arrays
+output application/json
+---
+((((vars.multipartdata.parts filterObject ((value, key, index) -> value..'Content-Type' != null)) pluck ((value, key, index) -> (key: value)))..key) map ((item, index) -> (do{
+    var filename = item.headers.'Content-Disposition'.filename
+    var contentType= item.headers."Content-Type"
+    var titleArray = (filename splitBy  ".")
+    var title = (titleArray take sizeOf(titleArray) -1) joinBy  "."
+    var content = if ( item.content is Binary ) item.content as Binary else if ( item.content is Object ) write(item.content, contentType) else write(item.content, "text/plain")
+    ---
+    {
+        "FirstPublishLocationId": vars.claimDetails,
+        "PathOnClient": filename,
+        "Title": title,
+        "VersionData": toBase64(content)
+    }
+})))]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+				<salesforce:create type="ContentVersion" doc:name="create contentversion" doc:id="48479352-1ca0-4fbb-88b6-38c8f2743f85" config-ref="Salesforce_Config" >
+					<salesforce:records ><![CDATA[#[vars.contentversion]]]></salesforce:records>
+				</salesforce:create>
+				<logger level="INFO" doc:name="Logger" doc:id="05114778-5f42-4f2a-b302-71358b0f04fe" message="#[payload]"/>
+			</route>
+		</scatter-gather>
+		<ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name='"Claim has been created"'>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"Claim has been created"]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    
+    
+</flow>
+	
+</mule>

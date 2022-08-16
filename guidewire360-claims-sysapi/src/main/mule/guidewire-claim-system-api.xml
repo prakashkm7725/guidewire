@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+   <flow name="guidewire-claim-system-api-main">
+        <http:listener config-ref="guidewire-claim-system-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="guidewire-claim-system-api-config" />
+        <error-handler ref="error-handlingError_Handler">
+            
+        </error-handler>
+    </flow>
+    <flow name="guidewire-claim-system-api-console">
+        <http:listener config-ref="guidewire-claim-system-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="guidewire-claim-system-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\activites:guidewire-claim-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.claimid
+	},
+	"collection" : "Activity"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="b65a2219-e771-4a37-8a64-f661f2fba3c3" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="055c396a-1967-46f6-ae58-30491caf3365" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\activitypattern:guidewire-claim-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.claimid
+	},
+	"collection" : "ActivityPattern"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="f50adc9f-4f0b-43b0-b036-585ffc411e1d" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a590e4c3-ad35-4969-83df-bd7afc04face" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\assignee:guidewire-claim-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.claimid
+	},
+	"collection" : "Assignee"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="9c7e9a70-35ce-4951-9160-b879ba5064aa" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="83958237-1c34-4f5a-be71-517cb4a3cd9e" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\checks:guidewire-claim-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.claimid
+	},
+	"collection" : "Checks"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="114ca12e-b0c6-46e1-9726-2ef11d978338" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ab93886d-812a-4441-8e69-9a88b5b55e18" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\account\(accountid)\claims:guidewire-claim-system-api-config">
+       
+		<ee:transform doc:name="Transform Message" doc:id="c222532d-f2b5-4f64-a0bb-f614617b6024" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountid
+	},
+	"collection" : "Policy"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="2f3b5823-54e0-4e7e-8314-d8091e2b5b00" name="claims-implementtionFlow"/>
+		<ee:transform doc:name="Transform Message" doc:id="14bd185b-5ce7-4010-b805-a3c525ed3182" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="claimData" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	
+]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="ad323d34-56d6-4b45-bf2e-52566d8fa81b" collection="#[payload]">
+			<ee:transform doc:name="Transform Message" doc:id="85fd8f0c-caff-4495-b8ad-1ea9738a20cf" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : payload.Policy_id
+	},
+	"collection" : "Claims"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="ba651ef7-5f2a-46a8-8e16-0227f92a3837" name="claims-implementtionFlow"/>
+			<ee:transform doc:name="Transform Message" doc:id="be146f27-6a5c-4e8c-9651-43c03ece0995" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="claimData" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.claimData ++  payload]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="acca7ec8-03cc-489a-a3ce-7d0bfe4b7cc1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.claimData]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7902e37e-00ce-4b24-95dc-a1db54744b1a" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyid)\claims:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="f8adbe9c-6518-45b8-8e90-1ba7044f0332" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyid
+	},
+	"collection" : "Claims"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="32d33426-acc3-426d-8330-59ff46401898" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1c0c8685-d047-4868-b2aa-6c58c7149d52" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\contacts:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="90d57865-6d1f-409a-8e93-c240bb10fad4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "Contact"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="d3d85e2a-dabf-43e8-a601-a238b9e21c24" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ad012a38-783e-427f-8984-8e45a429e218" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\dwelling-incidents:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="9067d0c7-3afc-43be-a5fa-c8ca6cae698a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "DwellingIncident"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="0a2649ab-f27f-49e4-975e-f1f6df614c36" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9a066882-10e0-44af-aacf-c7c7f62ed790" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\exposures:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="6270b6c9-e299-4060-8aae-f93f26de6e5e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "Exposure"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="2cd8715d-7eae-4874-8fc5-3c67546186d2" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="3d2b5fdb-14ad-4f0b-85b7-e4cb397054d6" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\fixedproperty-incidents:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="fc4a8d0c-144c-4ca2-90b7-1d96fca8baa4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "FixedPropertyIncident"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="b10bcc82-ad47-429a-944a-9a9df14c0d59" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="940cdccc-bf23-4d96-aa8f-06a8799d5a76" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\injury-incidents:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="f97a9a2d-3d07-4731-9bca-1c4c2018d250" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "Injury-Incidents"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="3685c6e5-1147-4a82-a02e-be6f10edb8ed" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1dd6d266-3638-41db-8014-76d63554a600" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\notes:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="481ff20e-ba59-426b-849a-387bf394d7f7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "Note"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="f11d6967-d5b9-4a43-bc25-c355fad5da7e" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0606cd36-9910-4535-84ef-187fe964caeb" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\payments:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="1a32e3a1-66fc-43c1-b79f-af6ec8c0230c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "Claim-Payment"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="9cbc4891-7fa7-4de3-897c-6864aca45833" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9499c429-762e-4985-8092-3cf26bc30c50" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\policy\coverages:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="1058f448-35d0-43dc-99c7-d83e97384070" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.claimid
+	},
+	"collection" : "Claims"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="0f92d288-968d-45b6-b61a-c6876be6bfe6" name="claims-implementtionFlow"/>
+		<ee:transform doc:name="Transform Message" doc:id="b2ce5d57-0cf7-42e1-905a-a3ae292173c1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : payload.Policy_id[0]
+	},
+	"collection" : "PolicyCoverages"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="88a09387-690d-4fc3-ab46-c65c15d06f11" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="4f982190-883a-4bd9-b3c9-65c881261bd0" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid)\servicerequest:guidewire-claim-system-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="e5f6c1c6-e734-4a00-b261-e522af604485" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "ServiceRequest"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="0ebc33c1-2bf9-4610-985e-15af7be936f3" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="34331a50-c0ad-42fb-9091-2c2ecded5ce8" message="#[payload]"/>
+        
+    </flow>
+    <flow name="get:\Insurance\claims\(claimid):guidewire-claim-system-api-config">
+       <ee:transform doc:name="Transform Message" doc:id="5a7240f4-5daa-468d-a3ae-00c60b1d17dc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Claim_id" : attributes.uriParams.'claimid'
+	},
+	"collection" : "Claims"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="d4d452fc-634b-4630-8d49-5e2bcae95c96" name="claims-implementtionFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="94f1c959-50b1-43a2-813d-86cd844e4eb1" message="#[payload]"/>
+        </flow>
+</mule>

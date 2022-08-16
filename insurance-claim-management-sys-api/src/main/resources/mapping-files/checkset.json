@@ -1,0 +1,16 @@
+[
+  {
+    "objectName": "Checkset__c",
+    "Fields": {
+      "fieldslist": [
+        "Id",
+        "name",
+        "ClaimId__c",
+        "Question__c",
+        "Answer__c"
+      ]
+      
+      
+    } 
+  }
+]

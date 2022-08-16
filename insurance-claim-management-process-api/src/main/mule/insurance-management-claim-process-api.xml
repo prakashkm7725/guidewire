@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <http:listener-config name="insurance-management-claim-process-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="insurance-management-claim-process-api-config" api="resource::04da4a8a-033f-4e6c-b0be-4ff39bd1db56:insurance-management-claim-process-api:1.0.7:raml:zip:insurance-management-claim-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="insurance-management-claim-process-api-main">
+        <http:listener config-ref="insurance-management-claim-process-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="insurance-management-claim-process-api-config" />
+        <error-handler ref="excpetion-handlerError_Handler" />
+    </flow>
+    <flow name="insurance-management-claim-process-api-console">
+        <http:listener config-ref="insurance-management-claim-process-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="insurance-management-claim-process-api-config" />
+        <error-handler ref="excpetion-handlerError_Handler" />
+    </flow>
+    <flow name="put:\Insurance\claims\(claimId)\status:application\json:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.claimId">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="PUT" doc:name="Update status" doc:id="2a6469a6-25fa-41b9-b172-d3bcbcc1566e" config-ref="HTTP_Request_configuration" path="/Insurance/claims/{claimId}/status">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : attributes.uriParams.claimId
+}]]]></http:uri-params>
+        </http:request>
+        <ee:transform doc:name="&quot;Status updated successfully&quot;">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"Status updated successfully"]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimId)\activities:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.claimId">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="GET" doc:name="update activity" doc:id="d761c7f4-f768-4936-9424-e0353a4497a0" config-ref="HTTP_Request_configuration" path="/Insurance/claims/{claimId}/activities">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : attributes.uriParams.claimId
+}]]]></http:uri-params>
+        </http:request>
+        <ee:transform doc:name="payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimId):insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.claimId" doc:id="eded3cf1-dde9-493c-afc3-fa3170831895">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="claimId"><![CDATA[attributes.uriParams.claimId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="GET" doc:name="get claims" doc:id="3e57341e-c03f-4edd-814e-83dee1757484" config-ref="HTTP_Request_configuration" path="/Insurance/claims/{claimId}">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : attributes.uriParams.claimId
+}]]]></http:uri-params>
+        </http:request>
+        <ee:transform doc:name="payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\Insurance\claims\activities:application\json:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="payload" doc:id="fa9a6d98-a100-4d2e-b8a8-440f43386472">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <http:request method="POST" doc:name="Create Activites" doc:id="fc897155-bffa-4f25-9ef5-a879211e15d0" config-ref="HTTP_Request_configuration" path="/Insurance/claims/activities" />
+        <logger level="INFO" doc:name="payload" doc:id="54d06acf-c490-4455-b59f-a71f0d179e1b" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="ae5cdc19-cd8b-4edb-abac-b7922638e0ab" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Activities has been created"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimId)\checkset:insurance-management-claim-process-api-config">
+        <http:request method="GET" doc:name="Get Checksets" doc:id="5e3a38cf-1bca-4f7f-b907-9d963ea72f28" config-ref="HTTP_Request_configuration" path="/Insurance/claims/{claimId}/checkset">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"claimId" : attributes.uriParams.claimId
+}]]]></http:uri-params>
+        </http:request>
+        <logger level="INFO" doc:name="payload" doc:id="7958d2d0-9e70-4186-ba6c-5af2210a74ec" message="#[payload]" />
+        <ee:transform doc:name="payload" doc:id="28d54374-2aa1-42d2-9664-3c591eb4166e">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\checks\(checkId):insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.checkId">
+            <ee:variables>
+                <ee:set-variable variableName="checkId">attributes.uriParams.'checkId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="GET" doc:name="Get Checks" doc:id="3abb7a31-0681-4a21-aeec-ede941bccec0" config-ref="HTTP_Request_configuration" path="/Insurance/claims/checks/{checkId}">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"checkId" : vars.checkId
+}]]]></http:uri-params>
+        </http:request>
+        <logger level="INFO" doc:name="payload" doc:id="3145456f-1ee6-445e-9c7a-563218095ea2" message="#[payload]" />
+        <ee:transform doc:name="payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\Insurance\ChecksetTemplate:application\json:insurance-management-claim-process-api-config">
+        <http:request method="POST" doc:name="create checksetTemplate" doc:id="2052bdb4-51cb-46d0-8eda-cf62f7a90a14" config-ref="HTTP_Request_configuration" path="/Insurance/ChecksetTemplate" />
+        <logger level="INFO" doc:name="payload" doc:id="efa1a680-80b6-4a5e-98fb-a02723689a5b" message="#[payload]" />
+        <ee:transform doc:name="&quot;checksetTemplate has been created successfully&quot;">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "checksetTemplate has been created successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\Insurance\claims\checks\(checkId):application\json:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.checkId">
+            <ee:variables>
+                <ee:set-variable variableName="checkId">attributes.uriParams.'checkId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="POST" doc:name="Update answer" doc:id="87c82e85-dfe3-47b0-96e2-0124b3da165e" config-ref="HTTP_Request_configuration" path="/Insurance/claims/checks/{checkId}">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"checkId" : vars.checkId
+}]]]></http:uri-params>
+        </http:request>
+        <logger level="INFO" doc:name="payload" doc:id="39cb4ff8-c0d0-42b4-b17d-3c3e0e661441" message="#[payload]" />
+        <ee:transform doc:name="&quot;Answer has been updated successfully&quot;">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Answer has been updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\Insurance\claims\activities\(activityId)\assignees:application\json:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.activityId">
+            <ee:variables>
+                <ee:set-variable variableName="activityId">attributes.uriParams.'activityId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="PUT" doc:name="update Assignee" doc:id="7ad54086-f26b-4701-b89e-a3e747ec8335" config-ref="HTTP_Request_configuration" path="/Insurance/claims/activities/{activityId}/assignees">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	
+	"activityId" : vars.activityId
+}]]]></http:uri-params>
+        </http:request>
+        <ee:transform doc:name="&quot;user has been assigned successfully&quot;">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "user has been assigned successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\Insurance\claims\activities\(activityId)\priority:application\json:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.activityId">
+            <ee:variables>
+                <ee:set-variable variableName="activityId">attributes.uriParams.'activityId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="PUT" doc:name="update priority" doc:id="f2dc9d90-37ec-424b-9bc2-69aa6bda6636" config-ref="HTTP_Request_configuration" path="/Insurance/claims/activities/{activityId}/priority">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	
+	"activityId" : vars.activityId
+}]]]></http:uri-params>
+        </http:request>
+        <ee:transform doc:name="payload" doc:id="251f0592-3b64-4370-8693-8084ba4af0f0">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\user:insurance-management-claim-process-api-config">
+        <ee:transform doc:name="vars.phone,vars.email" doc:id="a6021c9f-cbb5-4e4e-ba90-2c83632189bc">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="phone"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.phoneno]]></ee:set-variable>
+                <ee:set-variable variableName="email"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.email]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="GET" doc:name="Get user" doc:id="dbe65110-d9cb-4a50-a29f-ee0b6d5f760b" config-ref="HTTP_Request_configuration" path="/Insurance/claims/user">
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+	"email" : vars.email,
+	"phoneno" : vars.phone
+}]]]></http:query-params>
+        </http:request>
+        <ee:transform doc:name="payload" doc:id="0aed2574-256f-4861-a345-9df62c6c7164">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\Insurance\claims:multipart\form-data:insurance-management-claim-process-api-config">
+        <http:request method="GET" doc:name="Get contacts" doc:id="92bc9772-f093-4b01-8437-86a2c5a22903" config-ref="HTTP_Request_configuration" path="/Insurance/claims/contacts/{loginId}" target="contactId">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"loginId" : attributes.queryParams.loginId
+}]]]></http:uri-params>
+        </http:request>
+        <ee:transform doc:name="converting multipart/form-data to application/dw" doc:id="19b0f90a-ada6-4c8b-801a-4d93ca27da5c">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/dw
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <ee:transform doc:name="converting to multipart/form-data" doc:id="43584aae-476a-442c-ba41-5a3302751709">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output multipart/form-data
+
+---
+parts:payload.parts ++ {"ContactId" : {
+     "headers" : {
+         "Content-Disposition": {
+             "name" : "ContactId",
+             "subtype" : "form-data"
+         }
+  },
+   "content" : vars.contactId.Id reduce ($)
+}}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="convertedData"><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="ce0e7749-be86-44b2-b17c-7be6f9baa6a2">
+            <when expression="#[vars.contactId != []]">
+                <http:request method="POST" doc:name="Create claims" doc:id="857f68f0-6713-485f-a264-b447d5bcbfb7" config-ref="HTTP_Request_configuration" path="/Insurance/claims" />
+                <ee:transform doc:name="&quot;Claims created successfully.&quot;" doc:id="449692dc-8aab-4dc0-ba0b-be0390f3f204">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"Claims created successfully."]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <ee:transform doc:name="&quot;No contacts linked&quot;" doc:id="d04ebf51-dfe2-4998-8008-6e10ddfa5324">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"No contacts linked with loginId:" ++ attributes.queryParams.loginId]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="post:\Insurance\serviceContracts:application\json:insurance-management-claim-process-api-config">
+		<http:request method="GET" doc:name="Get contacts" doc:id="88b5ee88-44b9-4ada-9b23-1fe1296bacb4" config-ref="HTTP_Request_configuration" path="/Insurance/claims/contacts/{loginId}" target="contactId">
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"loginId" : attributes.queryParams.loginId
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice" doc:id="d40bc63b-f3c5-4602-bedf-2819d8b9e862" >
+			<when expression="#[vars.contactId != []]">
+				<ee:transform doc:name="Transform Message" doc:id="2cb66df3-90e2-4719-86c3-fbd121562b73" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ($ ++ {"Account Id": vars.contactId.Account.Id reduce ($ )})
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<http:request method="POST" doc:name="Request" doc:id="9f555833-db94-466f-82bb-8eace372253e" config-ref="HTTP_Request_configuration" path="/Insurance/serviceContracts"/>
+				<logger level="INFO" doc:name="Logger" doc:id="c446c1d1-d76c-41cf-b943-e4a124213353" message="#[payload]"/>
+			</when>
+			<otherwise>
+				<ee:transform doc:name='"No contacts linked"' doc:id="dd75a303-4ecd-4a50-9b7d-3db0ac748d0c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"No contacts linked with loginId:" ++ attributes.queryParams.loginId]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "serviceContract has been created successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\Insurance\serviceContracts\(contractId):application\json:insurance-management-claim-process-api-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="contractId">attributes.uriParams.'contractId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="PUT" doc:name="Request" doc:id="bdc3072a-92c8-49fb-997a-9e19361af29b" config-ref="HTTP_Request_configuration" path="/Insurance/serviceContracts/{contractId}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"contractId" : vars.contractId
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "serviceContract has been updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>

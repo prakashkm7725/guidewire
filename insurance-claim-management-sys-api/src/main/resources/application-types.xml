@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="mapping" format="json">
+      <types:shape format="weave" example="examples/mapping-var.json"><![CDATA[%dw 2.0
+
+type mapping = Array<{|  name: String,   policyId: String,   "type of claim": String,   "hospitilization/domicilary": String,   address: String,   state: String,   country: String,   zipcode: String,   Dob: String,   "Insured Amount": String|}> {"example": "[{\\\"name\\\":\\\"MetaLife Insurance-11\\\",\\\"policyId\\\":\\\"P0011\\\",\\\"type of claim\\\":\\\"HealthInsuranceType\\\",\\\"hospitilization\\/domicilary\\\":\\\"hospitilization\\\",\\\"address\\\":\\\"abc street,6th cross\\\",\\\"state\\\":\\\"Karnataka\\\",\\\"country\\\":\\\"India\\\",\\\"zipcode\\\":\\\"577204\\\",\\\"Dob\\\":\\\"25-12-2000\\\",\\\"Insured Amount\\\":\\\"30000\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#2c3c479a-f67d-4bfb-bcb1-e47207f61a57"/>
+  <types:enrichment select="#aeb57848-254e-472b-bfd6-dae2ff958060"/>
+  <types:enrichment select="#06402da7-e3fd-47f0-9cd0-6054b72e9141">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:variables>
+          <types:variable name="sfInput" type="mapping"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#856a733e-2f22-43fd-a7c5-500c9f98c64e">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:variables>
+          <types:variable name="sfInput" type="mapping"/>
+        </types:variables>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

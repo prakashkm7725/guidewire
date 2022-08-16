@@ -1,0 +1,29 @@
+%dw 2.0
+
+type auto_2768f5e3_9417_4c5e_bb3b_9673c031ece0_Input_Variables_rootMessage = {|
+  payload: Array<Array<Document>>, 
+  attributes: Null
+|} {"typeId": "org.mule.runtime.api.message.Message"}
+type Document = {|
+  "_id"?: {|  |}, 
+  ClaimId?: String, 
+  ContactId?: String, 
+  EmailId?: String, 
+  primaryPhone?: String, 
+  Channel?: String, 
+  batched?: String, 
+  "created date"?: DateTime, 
+  status?: String, 
+  address?: {|
+    addressLine1?: String, 
+    addressLine2?: String, 
+    addressLine3?: String, 
+    city?: String, 
+    country?: String
+  |}, 
+  content?: String, 
+  id?: String
+|} {"typeId": "Document"}
+
+
+

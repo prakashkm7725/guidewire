@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd">
+	<flow name="get:\Insurance-360\claim\v1\claims\(accountId):insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="accountId">attributes.uriParams.'accountId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="9a862ba6-f3bc-43cd-b6bf-1755790f27bc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Claims.AccountId": vars.accountId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents doc:name="Find documents" doc:id="da2f64a1-e9d5-47fb-bbe7-d88e64ddb3a2" config-ref="MongoDB_Config" collectionName="claim" fields=",">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="f1e13258-d288-4640-b73d-08dae725154b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d6165a0f-4d6c-4f59-9100-7c14800d83ac" message="#[payload]"/>
+    </flow>
+    
+    <flow name="get:\Insurance-360\claim\v1\claims\(claimId)\acknowledge-submission\ClaimContact:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="78995e95-4dde-4147-91fb-59d897cc0c76" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ClaimContact.claimId" : vars.claimId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents collectionName="ClaimContact" fields="," doc:name="Find documents" doc:id="1703e6e7-6c62-47a8-b11d-82a15174a1b1" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="a5fbc6e1-c5cc-4e2f-8fa2-c552189062e7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="#[payload]" />
+    </flow>
+    <flow name="get:\Insurance-360\claim\v1\claims\(claimId)\acknowledge-submission\DwellingIncident:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="8ac0b1fb-a9a8-413e-b8dc-6ad18b1b2ab7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"DwellingIncident.claimId" : vars.claimId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents collectionName="DwellingIncident" fields="," doc:name="Find documents" doc:id="280ffb61-cd36-49a1-940c-6ec27cc185e7" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="63d88dd8-f172-4f13-9719-4ffa9278c932" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="#[payload]" />
+    </flow>
+    <flow name="get:\Insurance-360\claim\v1\claims\(claimId)\payments:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="f2d4f45b-76a9-4df7-bdf4-0d8764ed04ca" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Payment.claimId" : vars.claimId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents collectionName="ClaimPayments" fields="," doc:name="Find documents" doc:id="4336968b-96f9-4cb8-abf8-582a610f9ec7" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="09e7662b-ad71-4016-b77e-b1bd04e7842b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="#[payload]" />
+    </flow>
+    <flow name="get:\Insurance-360\claim\v1\claims\(claimId)\policy\coverages:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="ce86908d-965e-450d-b7c7-01311bb14c06" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	 "PolicyCoverage.claimId" : vars.claimId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents collectionName="PolicyCoverage" doc:name="Find documents" doc:id="ab73c909-326b-43eb-a6ab-a312dc712cf0" config-ref="MongoDB_Config" fields=",">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="045410da-1045-45bd-a05b-493826cfcf96" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="#[payload]" />
+    </flow>
+    <flow name="get:\Insurance-360\claim\v1\claims\(claimId)\service-requests:insurance-360-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="d85f11c5-b8b8-46ea-b369-07ef8624555a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"service-requests.claimId" : vars.claimId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:find-documents collectionName="ClaimService-requests" fields="," doc:name="Find documents" doc:id="9ba52b41-b7d9-456c-a7b2-48be9dab5af8" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[payload]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="10d8147b-b101-44cd-a8f5-ce531648c3a2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="#[payload]" />
+    </flow>
+    
+	</mule>

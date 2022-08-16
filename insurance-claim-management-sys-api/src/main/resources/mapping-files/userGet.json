@@ -1,0 +1,15 @@
+[
+  {
+    "objectName": "User",
+    "Fields": {
+      "fieldslist": [
+        "Id",
+        "Name",
+        "phone",
+        "email"
+      ]
+      
+      
+    } 
+  }
+]

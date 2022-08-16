@@ -1,0 +1,17 @@
+[
+  {
+    "objectName": "Activity__c",
+    "Fields": {
+      "fieldslist": [
+        "Id",
+        "ActivityPattern__c",
+        "Mandatory__c",
+        "Priority__c",
+        "ClaimId__c",
+        "Name"
+      ]
+      
+      
+    } 
+  }
+]

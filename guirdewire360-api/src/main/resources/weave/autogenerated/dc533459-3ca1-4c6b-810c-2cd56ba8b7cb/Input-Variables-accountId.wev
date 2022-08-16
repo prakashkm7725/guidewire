@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_dc533459_3ca1_4c6b_810c_2cd56ba8b7cb_Input_Variables_accountId = String | Null
+

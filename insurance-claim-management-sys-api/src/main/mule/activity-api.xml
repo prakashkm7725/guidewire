@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+    
+    <flow name="post:\Insurance\claims\activities:application\json:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="payload" doc:id="f6cf7011-abe9-40a2-9bef-a16041b3e2d2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="mapping fields" doc:id="4b7f524e-e147-43a2-a60c-64439512078c">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	ActivityPattern__c: payload01.activityPattern,
+	Mandatory__c: payload01.mandatory,
+	Priority__c: payload01.priority,
+	ClaimId__c: payload01.claimId,
+	Name: payload01.activityName
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <salesforce:create type="Activity__c" doc:name="insert into salesforce" doc:id="1cfd93d1-b7af-414b-9a92-788858522563" config-ref="Salesforce_Config"/>
+		<logger level="INFO" doc:name='"Activities has been inserted successfully"' doc:id="d0fe2d8e-6293-43f3-954c-7bfd02805e52" message='"Activities has been inserted successfully"' />
+        <ee:transform doc:name="payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\(claimId)\activities:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="vars.claimId">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="query to get activites" doc:id="9f323976-ffc1-4388-9a9f-de23df30e2f8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/json
+var filedata = readUrl("classpath://mapping-files/activityIdAndclaimId.json", "application/json")
+---
+"Select " ++ joinBy (filedata[0].Fields.fieldslist ,",") ++ " from " ++ filedata[0].objectName ++ " Where ClaimId__c = '" ++ vars.claimId ++ "'"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+        <salesforce:query doc:name="select by claimId" doc:id="e8ffe324-e161-40a5-bc92-41d43f5020d6" config-ref="Salesforce_Config">
+            <salesforce:salesforce-query><![CDATA[#[payload]]]></salesforce:salesforce-query>
+        </salesforce:query>
+        <logger level="INFO" doc:name="payload" doc:id="bb4dc32b-fb1b-46f4-aa46-601c59b81903" message="#[payload]"/>
+		<ee:transform doc:name="payload" doc:id="bfbe59ad-1ebe-41fb-b106-2730f0f12bd1">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\Insurance\claims\activities\(activityId)\assignees:application\json:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="vars.activityId">
+            <ee:variables>
+                <ee:set-variable variableName="activityId">attributes.uriParams.'activityId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="payload" doc:id="c1c4295e-0cdf-41b4-9f0c-0ba2d75c67bc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	"Id" : vars.activityId,
+	"OwnerId" : payload.userid
+	
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Update the user" doc:id="6f467804-fa30-4dbf-96d2-8e6340c5a173" config-ref="Salesforce_Config" objectType="Activity__c" externalIdFieldName="Id"/>
+		<ee:transform doc:name='"user has been updated successfully"'>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "user has been updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\Insurance\claims\activities\(activityId)\priority:application\json:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="vars.activity">
+            <ee:variables>
+                <ee:set-variable variableName="activityId">attributes.uriParams.'activityId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="mappingfields" doc:id="e505f4a1-90c4-4b79-bd08-c1ffdfbb7896" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	"Id" : vars.activityId,
+	"Priority__c" : payload.priority
+	
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert objectType="Activity__c" externalIdFieldName="Id" doc:name="Update priority" doc:id="ef1e635e-7e92-4ed3-9864-bd26dc3ca5db" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="priority has been updated successfully">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "priority has been updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    
+	</mule>

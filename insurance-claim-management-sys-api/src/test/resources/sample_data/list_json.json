@@ -1,0 +1,14 @@
+[
+  {
+    "name": "MetaLife Insurance-11",
+    "policyId": "P0011",
+    "type of claim": "HealthInsuranceType",
+    "hospitilization/domicilary": "hospitilization",
+    "address": "abc street,6th cross",
+    "state": "Karnataka",
+    "country": "India",
+    "zipcode": "577204",
+    "Dob": "25-12-2000",
+    "Insured Amount": "30000"
+  }
+]

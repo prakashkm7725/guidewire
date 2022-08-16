@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    
+   <flow name="guidewire-360-api-main">
+        <http:listener config-ref="guidewire-360-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="guidewire-360-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="guidewire-360-api-console">
+        <http:listener config-ref="guidewire-360-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="guidewire-360-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\activites:guidewire-360-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="9a36a1de-c478-4581-a9e7-f229b2331092" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Activity"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="8b53e16b-f8e2-4144-b0e8-fe365e7a38c9" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2e1878b0-6340-4706-83d5-08324f5fd358" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\activites:guidewire-360-api-config">
+        <ee:transform doc:name="Transform Message" doc:id="a776ec0f-0d96-4d44-bbe1-de3810a393f9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Activity"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="dd949b0c-0dec-4c0e-9e8b-1afbb92a86fa" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="33e6ea7d-f8b6-4e51-bbe5-e66936037460" />
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\activitypattern:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "ActivityPattern"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="6e1e2fae-2b3b-47d0-a38d-ccbc4636eb0f" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f5ef81a5-f82d-44a8-a467-ea4467b6512a" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\activitypattern:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "ActivityPattern"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="b000ba71-1a61-4a30-8c00-ae0545ad376e" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="cd6b1457-59fc-488d-aab1-c6ad6156e1f1" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\assignee:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Assignee"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="47eb8141-e020-4cc7-92be-af8b59f80538" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0ac835e3-7d76-4285-9de3-7908d342e746" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\assignee:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Assignee"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="e093cf1e-d21a-47d4-8616-9aaa4f885e95" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="cbb4d413-58c9-45aa-80c9-f82da717f005" />
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\contacts:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Contact"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="30c22f00-3f1b-4cec-80ee-e7b3b1772463" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="04065e45-7ce2-4fc1-8ed4-28483560b08f" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\contacts:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Policy"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="4be46fef-7631-43b4-8d27-2b9a53c2954b" name="mongodb-implementationFlow"/>
+		<ee:transform doc:name="Transform Message" doc:id="a56e85d3-d817-4622-a4de-46718e3c052a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : payload.Account_id[0]
+		},
+	"collection" : "Contact"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="cae0e654-09b9-4f01-ab5b-6e7dc6890e4f" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c18245c0-95f7-4af1-a8ca-3d74a0905fe8" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\contingency:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},   
+	"collection" : "Contingency"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="e462ca40-4016-4f06-8ff6-127a3e3aacb3" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="05d0ba1b-e666-4e5a-9142-e82fbe30b2d4" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\documents:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Document"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="ed7d719b-c7f6-49a6-88e0-4620ad57578e" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="10dcbca6-4f87-4c0a-bc54-98f28e5b740a" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\documents:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Document"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="55fd0c92-c513-4305-9f6e-662159355e92" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="8a8f1453-1281-4aac-b87c-6015c5ebf329" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\notes:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Note"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="655ce5d8-181c-4104-9f54-3280c0dafdd1" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="6ddfe36a-a71f-4936-ba18-70eb80bf2762" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\notes:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Note"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="a2f0b961-5034-4cd9-bdbb-6f0f734dcfbf" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1b8a0448-6222-4e9e-9676-a3b22f5430c6" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\paymentInfo:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Payment"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="525b6532-7042-40ac-bc49-5a7ef1727b09" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9abe3830-710f-4d2a-9ffd-e187137fbb1a" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\policies:guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Policy"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="27f3066b-7e82-4635-97bf-9bc7be697659" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="03a7b8e9-b3d1-48ad-8f5b-d7bea1e9b3f4" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId):guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId
+	},
+	"collection" : "Account"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="0bc69cfe-902d-479e-9183-d1e98019da79" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="b3f392aa-9072-4be4-9a43-0b848f04c748" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId)\contacts\(contactId):guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Policy"
+}]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="contactId" ><![CDATA[attributes.uriParams.contactId]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="472c3a58-8f6b-4f11-981b-4f499941108d" name="mongodb-implementationFlow"/>
+		<ee:transform doc:name="Transform Message" doc:id="0d9c29b1-b564-4bb2-99d4-95bee75a31f7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : payload.Account_id[0],
+		"Contact_id" : vars.contactId
+		},
+	"collection" : "Contact"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="0d775929-011a-47f8-8792-2832ec474a98" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e0af5747-591b-4a37-ab60-e2fd11d9aec6" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\accounts\(accountId)\contacts\(contactId):guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Account_id" : attributes.uriParams.accountId,
+		"Contact_id" : attributes.uriParams.contactId
+		},
+	"collection" : "Contact"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="568537b6-c367-4924-a107-3e9cf388354f" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="8a2b7f76-87e3-4e71-929d-f160087d4702" message="#[payload]"/>
+    </flow>
+    <flow name="get:\Insurance\policies\(policyId):guidewire-360-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"query" : {
+		"Policy_id" : attributes.uriParams.policyId
+	},
+	"collection" : "Policy"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="6a747a2b-9bf5-4ccc-9e78-0b4e0d4c1d5d" name="mongodb-implementationFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="84e6bb7d-b68e-4845-945e-c9a57c8f656e" message="#[payload]"/>
+    </flow>
+</mule>

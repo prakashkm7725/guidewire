@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="get:\Insurance\claims\(claimId)\checkset:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="vars.claimId">
+            <ee:variables>
+                <ee:set-variable variableName="claimId">attributes.uriParams.'claimId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="query to get checksets" doc:id="d378ba6b-3701-405d-8180-f445f4999c46">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/json
+var filedata = readUrl("classpath://mapping-files/checkset.json", "application/json")
+---
+"Select " ++ joinBy (filedata[0].Fields.fieldslist ,",") ++ " from " ++ filedata[0].objectName ++ " where ClaimId__c ='" ++ attributes.uriParams.claimId ++ "'"]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <salesforce:query doc:name="Query" doc:id="4361fad5-399b-4ba7-b268-84c0e922f2bd" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[#[payload]]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Insurance\claims\checks\(checkId):insurance-management-claim-system-api-config">
+        <ee:transform doc:name="vars.checkId">
+            <ee:variables>
+                <ee:set-variable variableName="checkId">attributes.uriParams.'checkId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="query to get checks" doc:id="5edcce0a-740b-45f3-8a18-0b4732961a39">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/json
+var filedata = readUrl("classpath://mapping-files/checkset.json", "application/json")
+---
+"Select " ++ joinBy (filedata[0].Fields.fieldslist ,",") ++ " from " ++ filedata[0].objectName ++ " where Id ='" ++ attributes.uriParams.checkId ++ "'"]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <salesforce:query doc:name="Query" doc:id="5adbd1b5-6c85-44bc-8b69-0be0846f0485" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[#[payload]]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="payload" doc:id="c5c21e93-596e-48d9-9b00-55d68be84c17">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\Insurance\ChecksetTemplate:application\json:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="mapping fields" doc:id="705ea093-20a8-400b-87e3-6a503a930638">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	Name: payload01."type",
+	Question__c: payload01.question,
+	Type__c: payload01."type",
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <salesforce:create type="ChecksetTemplate__c" doc:name="Create" doc:id="421eb6cf-c9de-4a25-8939-8275ae9bc9dc" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="&quot;checksetTemplate has been created successfully&quot;">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "checksetTemplate has been created successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\Insurance\claims\checks\(checkId):application\json:insurance-management-claim-system-api-config">
+        <ee:transform doc:name="vars.checkId">
+            <ee:variables>
+                <ee:set-variable variableName="checkId">attributes.uriParams.'checkId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="mapping fields" doc:id="46e6ed6e-ab3c-42eb-a655-2f1dc0ae9ad4">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Id: vars.checkId,
+	Answer__c: payload.answer
+}]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<salesforce:upsert objectType="Checkset__c" externalIdFieldName="Id" doc:name="Upsert" doc:id="85490c88-2863-47e3-8cc6-bfcdef7c2d41" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="&quot;Answer has been submitted&quot;">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Answer has been submitted"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	
+	</mule>

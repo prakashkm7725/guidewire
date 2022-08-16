@@ -1,0 +1,22 @@
+{
+
+   
+
+  "Note": {
+    "Policy_id": "POC21891ID",
+    "Account_id": "",
+    "Body": "It contains text of the note",
+    "confidential": true,
+    "Author": {
+      "displayName": "Prashant",
+      "Author_id": "CON21890ID"
+    },
+    "subject": "Text of the Note",
+    "contingency": {
+      "displayName": "Name Of contingency",
+      "contingency_id": "COGY21891ID",
+      "type": "contingency type"
+    },
+    "mon_id": "62f22a13cb81aa2ff3c7fc57"
+  }
+}

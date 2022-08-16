@@ -1,0 +1,35 @@
+[{"Patterns": {
+    "mon_id" : "62f227e4cb81aa2ff3c7fc55",
+    "Pattern_Id": "PAT21891ID",
+    "priority": {
+      "name": "low",
+      "code": 4
+    },
+    "subject": "Activity pattern Subject",
+    "recurring": true,
+    "mandatory": false,
+    "description": "Acc Patrn demo",
+    "dueDate": {
+      "$date": {
+        "$numberLong": "1659954265121"
+      }
+    },
+    "escalationDate": {
+      "$date": {
+        "$numberLong": "1694165510396"
+      }
+    },
+    "patternLevel": {
+      "code": 2,
+      "name": "low"
+    },
+    "Activity type": {
+      "code": "3",
+      "name": "Demo"
+    },
+    "Category": {
+      "code": "4",
+      "name": "A"
+    }
+  }
+}]
